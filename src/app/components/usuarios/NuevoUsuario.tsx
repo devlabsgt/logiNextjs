@@ -26,35 +26,40 @@ interface Role {
   nombre: string;
 }
 
-interface NuevoUsuarioProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onUserCreated: () => void; // Nueva prop para refrescar VerUsuarios
-}
+const errorMessages = {
+  required: "El campo es requerido.",
+  invalidEmail: "El email debe ser válido.",
+  userExists: "El usuario con este correo ya existe.",
+  unexpectedError: "Ocurrió un error inesperado al crear el usuario.",
+};
 
 const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: any) => {
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [fechaNacimiento, setFechaNacimiento] = useState("");
-  const [rol, setRol] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordValid, setPasswordValid] = useState({
+  const initialFields = {
+    nombre: "",
+    email: "",
+    telefono: "",
+    fechaNacimiento: "",
+    rol: "",
+    password: "",
+    confirmPassword: "",
+  };
+
+  const initialPasswordValid = {
     minLength: false,
     uppercase: false,
     lowercase: false,
     number: false,
     specialChar: false,
     match: false,
-  });
+  };
+
+  const [fields, setFields] = useState(initialFields);
+  const [passwordValid, setPasswordValid] = useState(initialPasswordValid);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [errors, setErrors] = useState({
-    nombre: "",
-    email: "",
-    telefono: "",
-  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [alertMessage, setAlertMessage] = useState("");
+
+  const { nombre, email, telefono, fechaNacimiento, rol, password, confirmPassword } = fields;
 
   useEffect(() => {
     fetch("/api/roles")
@@ -65,38 +70,32 @@ const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: any) => {
 
   useEffect(() => {
     if (isOpen) {
-      setNombre("");
-      setEmail("");
-      setTelefono("");
-      setFechaNacimiento("");
-      setRol("");
-      setPassword("");
-      setConfirmPassword("");
-      setPasswordValid({
-        minLength: false,
-        uppercase: false,
-        lowercase: false,
-        number: false,
-        specialChar: false,
-        match: false,
-      });
-      setErrors({ nombre: "", email: "", telefono: "" });
+      setFields(initialFields);
+      setPasswordValid(initialPasswordValid);
+      setErrors({});
       setAlertMessage("");
     }
   }, [isOpen]);
 
   const validateFields = () => {
     const newErrors = {
-      nombre: nombre.trim() ? "" : "El nombre es requerido.",
-      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : "El email debe ser válido.",
-      telefono: telefono.trim() ? "" : "El teléfono es requerido.",
+      nombre: nombre.trim() ? "" : errorMessages.required,
+      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : errorMessages.invalidEmail,
+      telefono: telefono.trim() ? "" : errorMessages.required,
     };
     setErrors(newErrors);
-    return !Object.values(newErrors).some((error) => error);
+    return Object.values(newErrors).every((error) => !error);
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFields((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handlePasswordChange = (value: string) => {
-    setPassword(value);
+    setFields((prev) => ({ ...prev, password: value }));
     setPasswordValid({
       minLength: value.length >= 8,
       uppercase: /[A-Z]/.test(value),
@@ -108,11 +107,16 @@ const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: any) => {
   };
 
   const handleConfirmPasswordChange = (value: string) => {
-    setConfirmPassword(value);
+    setFields((prev) => ({ ...prev, confirmPassword: value }));
     setPasswordValid((prev) => ({
       ...prev,
       match: value === password,
     }));
+  };
+
+  const handleRoleChange = (value: string) => {
+    const selectedRole = roles.find((role) => role.nombre === value);
+    setFields((prev) => ({ ...prev, rol: selectedRole?.nombre || "" }));
   };
 
   const handleCreateUser = async () => {
@@ -142,17 +146,16 @@ const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: any) => {
       } else {
         const errorData = await response.json();
         if (response.status === 400 && errorData.message === "Usuario ya existe") {
-          setAlertMessage("El usuario con este correo ya existe.");
+          setAlertMessage(errorMessages.userExists);
         } else {
-          setAlertMessage("Error al crear el usuario.");
+          setAlertMessage(errorMessages.unexpectedError);
         }
       }
     } catch (error) {
       console.error("Error al crear usuario:", error);
-      setAlertMessage("Ocurrió un error inesperado al crear el usuario.");
+      setAlertMessage(errorMessages.unexpectedError);
     }
   };
-
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -168,60 +171,74 @@ const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: any) => {
               <AlertDescription>{alertMessage}</AlertDescription>
             </Alert>
           )}
-          <FormControl isInvalid={!!errors.nombre} mt={4}>
-            <FormLabel>Nombre</FormLabel>
-            <Input value={nombre} onChange={(e) => setNombre(e.target.value)} />
-            {errors.nombre && <Text color="red.500">{errors.nombre}</Text>}
-          </FormControl>
-          <FormControl isInvalid={!!errors.email} mt={4}>
-            <FormLabel>Email</FormLabel>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} />
-            {errors.email && <Text color="red.500">{errors.email}</Text>}
-          </FormControl>
-          <FormControl isInvalid={!!errors.telefono} mt={4}>
-            <FormLabel>Teléfono</FormLabel>
-            <Input value={telefono} onChange={(e) => setTelefono(e.target.value)} />
-            {errors.telefono && <Text color="red.500">{errors.telefono}</Text>}
-          </FormControl>
+          {[
+            { label: "Nombre", value: nombre, field: "nombre", error: errors.nombre },
+            { label: "Email", value: email, field: "email", error: errors.email },
+            { label: "Teléfono", value: telefono, field: "telefono", error: errors.telefono },
+          ].map(({ label, value, field, error }) => (
+            <FormControl isInvalid={!!error} mt={4} key={field}>
+              <FormLabel>{label}</FormLabel>
+              <Input value={value} onChange={(e) => handleInputChange(field, e.target.value)} />
+              {error && <Text color="red.500">{error}</Text>}
+            </FormControl>
+          ))}
           <FormControl mt={4}>
             <FormLabel>Fecha de Nacimiento</FormLabel>
-            <Input type="date" value={fechaNacimiento} onChange={(e) => setFechaNacimiento(e.target.value)} />
+            <Input
+              type="date"
+              value={fechaNacimiento}
+              onChange={(e) => handleInputChange("fechaNacimiento", e.target.value)}
+            />
           </FormControl>
           <FormControl mt={4}>
             <FormLabel>Rol</FormLabel>
-            <Select
-              value={rol}
-              onChange={(e) => {
-                const selectedRole = roles.find((role) => role.nombre === e.target.value);
-                if (selectedRole) setRol(selectedRole.nombre);
-              }}
-            >
+            <Select value={rol} onChange={(e) => handleRoleChange(e.target.value)}>
               <option value="">Seleccione un rol</option>
               {roles.map((role) => (
-                <option key={role._id} value={role.nombre}>{role.nombre}</option>
+                <option key={role._id} value={role.nombre}>
+                  {role.nombre}
+                </option>
               ))}
             </Select>
           </FormControl>
           <FormControl mt={4}>
             <FormLabel>Contraseña</FormLabel>
-            <PasswordInput placeholder="Contraseña" value={password} onChange={(e) => handlePasswordChange(e.target.value)} />
+            <PasswordInput
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+            />
           </FormControl>
           <FormControl mt={4}>
             <FormLabel>Confirmar Contraseña</FormLabel>
-            <PasswordInput placeholder="Confirmar contraseña" value={confirmPassword} onChange={(e) => handleConfirmPasswordChange(e.target.value)} />
+            <PasswordInput
+              placeholder="Confirmar contraseña"
+              value={confirmPassword}
+              onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+            />
           </FormControl>
           <Box mt={4}>
-            <Text color={passwordValid.minLength ? "green" : "red"}>Longitud mínima de 8 caracteres</Text>
-            <Text color={passwordValid.uppercase ? "green" : "red"}>Al menos una letra mayúscula</Text>
-            <Text color={passwordValid.lowercase ? "green" : "red"}>Al menos una letra minúscula</Text>
-            <Text color={passwordValid.number ? "green" : "red"}>Al menos un número</Text>
-            <Text color={passwordValid.specialChar ? "green" : "red"}>Al menos un carácter especial</Text>
-            <Text color={passwordValid.match ? "green" : "red"}>Las contraseñas coinciden</Text>
+            {[
+              { text: "Longitud mínima de 8 caracteres", valid: passwordValid.minLength },
+              { text: "Al menos una letra mayúscula", valid: passwordValid.uppercase },
+              { text: "Al menos una letra minúscula", valid: passwordValid.lowercase },
+              { text: "Al menos un número", valid: passwordValid.number },
+              { text: "Al menos un carácter especial", valid: passwordValid.specialChar },
+              { text: "Las contraseñas coinciden", valid: passwordValid.match },
+            ].map(({ text, valid }) => (
+              <Text key={text} color={valid ? "green" : "red"}>
+                {text}
+              </Text>
+            ))}
           </Box>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" onClick={handleCreateUser}>Crear Usuario</Button>
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button colorScheme="blue" onClick={handleCreateUser}>
+            Crear Usuario
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancelar
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

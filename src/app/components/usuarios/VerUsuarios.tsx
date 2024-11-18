@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import {
-  Box,
+
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverCloseButton,
+  PopoverHeader,
+  PopoverBody,
   Button,
   Table,
   Tbody,
@@ -13,7 +20,6 @@ import {
   Stack,
   Text,
   TableContainer,
-  FormControl,
   Input,
   Tabs,
   TabList,
@@ -66,6 +72,9 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
       })
       .catch((error) => console.error(`Error al cargar usuarios ${type}:`, error));
   };
+
+  const [showHint, setShowHint] = useState(false);
+
 
   const fetchUsuariosCount = () => {
     fetch("/api/usuarios/count")
@@ -132,23 +141,38 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
 
   const startIndex = (page - 1) * pageSize;
   const paginatedUsuarios = filteredUsuarios.slice(startIndex, startIndex + pageSize);
-
-  const handleUserCreated = () => {
-    setIsNuevoUsuarioOpen(false); // Cierra el modal
-    fetchUsuarios(activeTab as UsuarioType); // Refresca los usuarios según la pestaña activa
-  };
-
   
   return (
     <Stack width={{ base: "100%", xl: "1200px" }} gap="5" p={5}>
       <Heading size="sm">Lista de usuarios con acceso al sistema</Heading>
-      <HStack justify="space-between" mb={4}>
-        <Button colorScheme="blue" onClick={onBack}>Volver</Button>
-        <Button colorScheme="green" onClick={() => setIsNuevoUsuarioOpen(true)}>Nuevo Usuario</Button>
-      </HStack>
-      <FormControl mb={4}>
-        <Input placeholder="Buscar por nombre, email, rol o teléfono" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-      </FormControl>
+
+<HStack justify="space-between" align="center" spacing={4} wrap="nowrap" width="100%">
+  <Button colorScheme="blue" onClick={onBack}>
+    Volver
+  </Button>
+  <Stack align="center" flex="1">
+    <Input
+      placeholder="Buscar..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      onFocus={() => setShowHint(true)}
+      onBlur={() => setShowHint(false)}
+      width="100%"
+    />
+    {showHint && (
+      <Text fontSize="sm" color="gray.500">
+        Buscar por nombre, email, rol o teléfono
+      </Text>
+    )}
+  </Stack>
+  <Button colorScheme="green" onClick={() => setIsNuevoUsuarioOpen(true)}>
+    Nuevo Usuario
+  </Button>
+</HStack>
+
+
+
+
       <Tabs isFitted onChange={(index) => handleTabChange(["activos", "inactivos", "sesion"][index] as UsuarioType)}>
         <TabList>
           <Tab>Activos ({count.activos})</Tab>
@@ -180,12 +204,42 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
                         <Td>{usuario.telefono}</Td>
                         <Td>{moment(usuario.fechaNacimiento).format("DD-MM-YYYY")}</Td>
                         <Td>{usuario.rol?.nombre || 'Sin rol asignado'}</Td>
-                        <Td>
-                          <Button colorScheme="blue" size="sm" onClick={() => { setSelectedUser(usuario); setIsModalOpen(true); }}>Editar</Button>
-                          <Button colorScheme={usuario.activo ? "red" : "green"} size="sm" ml={2} onClick={() => handleToggleActive(usuario._id, usuario.activo)}>
-                            {usuario.activo ? "Desactivar" : "Activar"}
-                          </Button>
-                        </Td>
+<Td>
+  <Popover>
+    <PopoverTrigger>
+<Button bg="#4da8da" _hover={{ bg: "#3798c4" }} color="white" size="sm">
+        Gestionar
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent>
+      <PopoverArrow />
+      <PopoverCloseButton />
+      <PopoverHeader>Opciones</PopoverHeader>
+      <PopoverBody>
+        <Stack spacing={3}>
+          <Button
+            colorScheme="blue"
+            size="sm"
+            onClick={() => {
+              setSelectedUser(usuario);
+              setIsModalOpen(true);
+            }}
+          >
+            Editar
+          </Button>
+          <Button
+            colorScheme={usuario.activo ? "red" : "green"}
+            size="sm"
+            onClick={() => handleToggleActive(usuario._id, usuario.activo)}
+          >
+            {usuario.activo ? "Desactivar" : "Activar"}
+          </Button>
+        </Stack>
+      </PopoverBody>
+    </PopoverContent>
+  </Popover>
+</Td>
+
                       </Tr>
                     ))}
                     {paginatedUsuarios.length < pageSize &&
