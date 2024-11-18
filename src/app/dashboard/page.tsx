@@ -25,7 +25,7 @@ import {
 import { useRouter } from "next/navigation";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import Swal from "sweetalert2";
-import VerPerfil from "../components/usuarios/VerUsuario";
+import VerUsuario from "../components/usuarios/VerUsuario";
 import VerUsuarios from "../components/usuarios/VerUsuarios";
 import { jwtDecode } from "jwt-decode";
 
@@ -40,10 +40,9 @@ interface User {
   email: string;
   telefono: string;
   fechaNacimiento: string;
-  rol: {
-    _id: string;
-    nombre: string;
-  };
+  rol: { _id: string; nombre: string }; // No opcional
+  activo: boolean;
+  sesion: boolean;
 }
 
 const Dashboard = () => {
@@ -390,7 +389,7 @@ const Dashboard = () => {
 
       {/* Modal de perfil */}
       {userData && (
-        <VerPerfil
+        <VerUsuario
           isOpen={isOpen}
           onClose={() => {
             onClose();
@@ -398,7 +397,6 @@ const Dashboard = () => {
           }}
           userData={userData}
           setUserData={setUserData}
-          userRole={userRole || ""}
         />
       )}
     </Box>

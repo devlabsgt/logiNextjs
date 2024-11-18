@@ -1,3 +1,5 @@
+//VerUsuario.tsx
+
 import { useEffect, useState } from "react";
 import {
   Modal,
@@ -21,22 +23,33 @@ import { PasswordInput } from "@/app/components/ui/password-input";
 import moment from "moment";
 import { jwtDecode } from "jwt-decode";
 
+
+
 interface User {
   _id: string;
   nombre: string;
   email: string;
   telefono: string;
   fechaNacimiento: string;
-  rol: {
-    _id: string;
-    nombre: string;
-  };
+  rol: { _id: string; nombre: string }; // No opcional
+  activo: boolean;
+  sesion: boolean;
+}
+
+
+interface VerUsuarioProps {
+  isOpen: boolean;
+  onClose: () => void;
+  userData: User; // Garantizamos que siempre tenga un rol
+  setUserData: (user: User | null) => void;
 }
 
 interface Role {
   _id: string;
   nombre: string;
 }
+
+
 
 interface DecodedToken {
   id: string;
@@ -45,7 +58,8 @@ interface DecodedToken {
 
 }
 
-const VerUsuario = ({ isOpen, onClose, userData, setUserData }: any) => {
+const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps) => {
+  
   const [isPasswordSectionOpen, setIsPasswordSectionOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -234,7 +248,7 @@ const VerUsuario = ({ isOpen, onClose, userData, setUserData }: any) => {
                 }}
               >
                 {roles
-                  .filter((role) => role.nombre !== "Super") // Filtrar la opción "Super"
+                  .filter((role) => userRole === "Super" || role.nombre !== "Super")
                   .map((role) => (
                     <option key={role._id} value={role._id}>
                       {role.nombre}

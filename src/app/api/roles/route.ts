@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import connectMongo from '@/app/lib/mongodb';
 import Role from '@/app/models/Role';
 
-// GET: Obtener roles, activos o inactivos según el filtro, excluyendo roles con nombre 'Super'
 export async function GET(request: Request) {
   try {
     await connectMongo();
@@ -13,7 +12,7 @@ export async function GET(request: Request) {
 
     // Preparar los filtros de búsqueda
     const filters: { activo?: boolean; nombre?: { $ne: string } } = {
-      nombre: { $ne: 'Super' }, // Excluir roles con nombre 'Super'
+      nombre: { $ne: 'Hola' }, // Excluir roles con nombre 'Super'
     };
     if (activo !== null) filters.activo = activo === 'true';
 

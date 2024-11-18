@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo  } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -43,26 +43,26 @@ const errorMessages = {
 
 
 const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: NuevoUsuarioProps) => {
-  const initialFields = {
-    nombre: "",
-    email: "",
-    telefono: "",
-    fechaNacimiento: "",
-    rol: "",
-    password: "",
-    confirmPassword: "",
-  };
+    const initialFields = useMemo(() => ({
+      nombre: "",
+      email: "",
+      telefono: "",
+      fechaNacimiento: "",
+      rol: "",
+      password: "",
+      confirmPassword: "",
+    }), []);
 
 
 
-  const initialPasswordValid = {
-    minLength: false,
-    uppercase: false,
-    lowercase: false,
-    number: false,
-    specialChar: false,
-    match: false,
-  };
+    const initialPasswordValid = useMemo(() => ({
+      minLength: false,
+      uppercase: false,
+      lowercase: false,
+      number: false,
+      specialChar: false,
+      match: false,
+    }), []);
 
   const [fields, setFields] = useState(initialFields);
   const [passwordValid, setPasswordValid] = useState(initialPasswordValid);
@@ -79,14 +79,16 @@ const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: NuevoUsuarioProps) => 
       .catch((error) => console.error("Error al cargar roles:", error));
   }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      setFields(initialFields);
-      setPasswordValid(initialPasswordValid);
-      setErrors({});
-      setAlertMessage("");
-    }
-  }, [isOpen]);
+useEffect(() => {
+  if (isOpen) {
+    setFields(initialFields);
+    setPasswordValid(initialPasswordValid);
+    setErrors({});
+    setAlertMessage("");
+  }
+}, [isOpen, initialFields, initialPasswordValid]);
+
+
 
   const validateFields = () => {
     const newErrors = {
