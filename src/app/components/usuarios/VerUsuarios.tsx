@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
 
   Popover,
@@ -61,27 +61,27 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
 
   type UsuarioType = "activos" | "inactivos" | "sesion";
 
-  const fetchUsuarios = (type: UsuarioType) => {
-    const endpoint = `/api/usuarios?${type === "sesion" ? "sesion=true" : `activo=${type === "activos"}`}`;
-    fetch(endpoint)
-      .then((res) => res.json())
-      .then((data) => {
-        setUsuarios(data);
-        setFilteredUsuarios(data);
-        setPage(1);
-      })
-      .catch((error) => console.error(`Error al cargar usuarios ${type}:`, error));
-  };
 
-  const [showHint, setShowHint] = useState(false);
+    const [showHint, setShowHint] = useState(false);
+const fetchUsuarios = useCallback((type: UsuarioType) => {
+  const endpoint = `/api/usuarios?${type === "sesion" ? "sesion=true" : `activo=${type === "activos"}`}`;
+  fetch(endpoint)
+    .then((res) => res.json())
+    .then((data) => {
+      setUsuarios(data);
+      setFilteredUsuarios(data);
+      setPage(1);
+    })
+    .catch((error) => console.error(`Error al cargar usuarios ${type}:`, error));
+}, []);
 
+const fetchUsuariosCount = useCallback(() => {
+  fetch("/api/usuarios/count")
+    .then((res) => res.json())
+    .then(setCount)
+    .catch((error) => console.error("Error al cargar los conteos:", error));
+}, []);
 
-  const fetchUsuariosCount = () => {
-    fetch("/api/usuarios/count")
-      .then((res) => res.json())
-      .then(setCount)
-      .catch((error) => console.error("Error al cargar los conteos:", error));
-  };
 
   useEffect(() => {
     fetchUsuariosCount();
@@ -204,41 +204,41 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
                         <Td>{usuario.telefono}</Td>
                         <Td>{moment(usuario.fechaNacimiento).format("DD-MM-YYYY")}</Td>
                         <Td>{usuario.rol?.nombre || 'Sin rol asignado'}</Td>
-<Td>
-  <Popover>
-    <PopoverTrigger>
-<Button bg="#4da8da" _hover={{ bg: "#3798c4" }} color="white" size="sm">
-        Gestionar
-      </Button>
-    </PopoverTrigger>
-    <PopoverContent>
-      <PopoverArrow />
-      <PopoverCloseButton />
-      <PopoverHeader>Opciones</PopoverHeader>
-      <PopoverBody>
-        <Stack spacing={3}>
-          <Button
-            colorScheme="blue"
-            size="sm"
-            onClick={() => {
-              setSelectedUser(usuario);
-              setIsModalOpen(true);
-            }}
-          >
-            Editar
-          </Button>
-          <Button
-            colorScheme={usuario.activo ? "red" : "green"}
-            size="sm"
-            onClick={() => handleToggleActive(usuario._id, usuario.activo)}
-          >
-            {usuario.activo ? "Desactivar" : "Activar"}
-          </Button>
-        </Stack>
-      </PopoverBody>
-    </PopoverContent>
-  </Popover>
-</Td>
+                        <Td>
+                          <Popover>
+                            <PopoverTrigger>
+                        <Button bg="#4da8da" _hover={{ bg: "#3798c4" }} color="white" size="sm">
+                                Gestionar
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent>
+                              <PopoverArrow />
+                              <PopoverCloseButton />
+                              <PopoverHeader>Opciones</PopoverHeader>
+                              <PopoverBody>
+                                <Stack spacing={3}>
+                                  <Button
+                                    colorScheme="blue"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedUser(usuario);
+                                      setIsModalOpen(true);
+                                    }}
+                                  >
+                                    Editar
+                                  </Button>
+                                  <Button
+                                    colorScheme={usuario.activo ? "red" : "green"}
+                                    size="sm"
+                                    onClick={() => handleToggleActive(usuario._id, usuario.activo)}
+                                  >
+                                    {usuario.activo ? "Desactivar" : "Activar"}
+                                  </Button>
+                                </Stack>
+                              </PopoverBody>
+                            </PopoverContent>
+                          </Popover>
+                        </Td>
 
                       </Tr>
                     ))}

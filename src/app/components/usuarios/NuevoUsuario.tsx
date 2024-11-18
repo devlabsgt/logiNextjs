@@ -26,6 +26,13 @@ interface Role {
   nombre: string;
 }
 
+  interface NuevoUsuarioProps {
+  isOpen: boolean; // Si el modal está abierto o cerrado
+  onClose: () => void; // Función para cerrar el modal
+  onUserCreated: () => void; // Función que se ejecuta después de crear un usuario
+}
+
+
 const errorMessages = {
   required: "El campo es requerido.",
   invalidEmail: "El email debe ser válido.",
@@ -33,7 +40,9 @@ const errorMessages = {
   unexpectedError: "Ocurrió un error inesperado al crear el usuario.",
 };
 
-const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: any) => {
+
+
+const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: NuevoUsuarioProps) => {
   const initialFields = {
     nombre: "",
     email: "",
@@ -43,6 +52,8 @@ const NuevoUsuario = ({ isOpen, onClose, onUserCreated }: any) => {
     password: "",
     confirmPassword: "",
   };
+
+
 
   const initialPasswordValid = {
     minLength: false,
