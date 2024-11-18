@@ -1,0 +1,219 @@
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  Table,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+  HStack,
+  Heading,
+  Stack,
+  Text,
+  TableContainer,
+  FormControl,
+  Input,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
+} from "@chakra-ui/react";
+import moment from "moment-timezone";
+import VerUsuario from "./VerUsuario";
+import NuevoUsuario from "./NuevoUsuario";
+import Swal from "sweetalert2";
+
+interface User {
+  _id: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  fechaNacimiento: string;
+  rol?: { _id: string; nombre: string };
+  activo: boolean;
+  sesion: boolean;
+}
+
+interface VerUsuariosProps {
+  onBack: () => void;
+}
+
+const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
+  const [usuarios, setUsuarios] = useState<User[]>([]);
+  const [filteredUsuarios, setFilteredUsuarios] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNuevoUsuarioOpen, setIsNuevoUsuarioOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("activos");
+  const [count, setCount] = useState({ activos: 0, inactivos: 0, enSesion: 0 });
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  type UsuarioType = "activos" | "inactivos" | "sesion";
+
+  const fetchUsuarios = (type: UsuarioType) => {
+    const endpoint = `/api/usuarios?${type === "sesion" ? "sesion=true" : `activo=${type === "activos"}`}`;
+    fetch(endpoint)
+      .then((res) => res.json())
+      .then((data) => {
+        setUsuarios(data);
+        setFilteredUsuarios(data);
+        setPage(1);
+      })
+      .catch((error) => console.error(`Error al cargar usuarios ${type}:`, error));
+  };
+
+  const fetchUsuariosCount = () => {
+    fetch("/api/usuarios/count")
+      .then((res) => res.json())
+      .then(setCount)
+      .catch((error) => console.error("Error al cargar los conteos:", error));
+  };
+
+  useEffect(() => {
+    fetchUsuariosCount();
+    fetchUsuarios("activos");
+  }, []);
+
+  useEffect(() => {
+    const lowerSearch = searchQuery.toLowerCase();
+    const filtered = usuarios.filter(({ nombre, email, telefono, rol }) =>
+      [nombre, email, telefono, rol?.nombre].join(" ").toLowerCase().includes(lowerSearch)
+    );
+    setFilteredUsuarios(filtered);
+    setPage(1);
+  }, [searchQuery, usuarios]);
+
+  const handleTabChange = (tab: UsuarioType) => {
+    setActiveTab(tab);
+    fetchUsuarios(tab);
+  };
+
+  const handleToggleActive = async (userId: string, isActive: boolean) => {
+    const confirmation = await Swal.fire({
+      title: isActive ? "¿Desactivar usuario?" : "¿Activar usuario?",
+      text: isActive ? "Si desactivas este usuario, perderá acceso al sistema." : "¿Deseas activar este usuario? Esto le dará acceso al sistema.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: isActive ? "#d33" : "#28a745",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: isActive ? "Sí, desactivar" : "Sí, activar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!confirmation.isConfirmed) return;
+
+    try {
+      const { sesion } = await fetch(`/api/usuarios/${userId}`).then((res) => res.json());
+      if (sesion && isActive) {
+        Swal.fire({ icon: "error", title: "No se puede desactivar", text: "El usuario está actualmente en sesión." });
+      } else {
+        const toggleResponse = await fetch(`/api/usuarios/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ activo: !isActive }),
+        });
+        if (toggleResponse.ok) {
+          Swal.fire({ icon: "success", title: isActive ? "Usuario desactivado" : "Usuario activado", text: `El usuario ha sido ${isActive ? "desactivado" : "activado"} correctamente.` });
+          fetchUsuarios(activeTab as UsuarioType);
+          fetchUsuariosCount();
+        } else {
+          Swal.fire({ icon: "error", title: "Error", text: `Ocurrió un error al intentar ${isActive ? "desactivar" : "activar"} el usuario.` });
+        }
+      }
+    } catch (error) {
+      console.error(`Error al cambiar el estado del usuario:`, error);
+      Swal.fire({ icon: "error", title: "Error", text: `Ocurrió un error al intentar ${isActive ? "desactivar" : "activar"} el usuario.` });
+    }
+  };
+
+  const startIndex = (page - 1) * pageSize;
+  const paginatedUsuarios = filteredUsuarios.slice(startIndex, startIndex + pageSize);
+
+  const handleUserCreated = () => {
+    setIsNuevoUsuarioOpen(false); // Cierra el modal
+    fetchUsuarios(activeTab as UsuarioType); // Refresca los usuarios según la pestaña activa
+  };
+
+  
+  return (
+    <Stack width={{ base: "100%", xl: "1200px" }} gap="5" p={5}>
+      <Heading size="sm">Lista de usuarios con acceso al sistema</Heading>
+      <HStack justify="space-between" mb={4}>
+        <Button colorScheme="blue" onClick={onBack}>Volver</Button>
+        <Button colorScheme="green" onClick={() => setIsNuevoUsuarioOpen(true)}>Nuevo Usuario</Button>
+      </HStack>
+      <FormControl mb={4}>
+        <Input placeholder="Buscar por nombre, email, rol o teléfono" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+      </FormControl>
+      <Tabs isFitted onChange={(index) => handleTabChange(["activos", "inactivos", "sesion"][index] as UsuarioType)}>
+        <TabList>
+          <Tab>Activos ({count.activos})</Tab>
+          <Tab>Desactivados ({count.inactivos})</Tab>
+          <Tab>En sesión ({count.enSesion})</Tab>
+        </TabList>
+        <TabPanels>
+          {["activos", "inactivos", "sesion"].map((_, idx) => (
+            <TabPanel key={idx}>
+              <TableContainer borderWidth="1px" borderRadius="md" boxShadow="md" maxW="full">
+                <Table variant="striped" colorScheme="gray" size="sm">
+                  <Thead bg="blue.500">
+                    <Tr>
+                      <Th color="white" textAlign="center">No.</Th>
+                      <Th color="white" textAlign="center">Nombre</Th>
+                      <Th color="white" textAlign="center">Email</Th>
+                      <Th color="white" textAlign="center">Teléfono</Th>
+                      <Th color="white" textAlign="center">Fecha <><br/></>de Nacimiento</Th>
+                      <Th color="white" textAlign="center">Rol</Th>
+                      <Th color="white" textAlign="center">Acciones</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {paginatedUsuarios.map((usuario, index) => (
+                      <Tr key={usuario._id}>
+                        <Td>{startIndex + index + 1}</Td>
+                        <Td>{usuario.nombre}</Td>
+                        <Td>{usuario.email}</Td>
+                        <Td>{usuario.telefono}</Td>
+                        <Td>{moment(usuario.fechaNacimiento).format("DD-MM-YYYY")}</Td>
+                        <Td>{usuario.rol?.nombre || 'Sin rol asignado'}</Td>
+                        <Td>
+                          <Button colorScheme="blue" size="sm" onClick={() => { setSelectedUser(usuario); setIsModalOpen(true); }}>Editar</Button>
+                          <Button colorScheme={usuario.activo ? "red" : "green"} size="sm" ml={2} onClick={() => handleToggleActive(usuario._id, usuario.activo)}>
+                            {usuario.activo ? "Desactivar" : "Activar"}
+                          </Button>
+                        </Td>
+                      </Tr>
+                    ))}
+                    {paginatedUsuarios.length < pageSize &&
+                      Array.from({ length: pageSize - paginatedUsuarios.length }).map((_, idx) => (
+                        <Tr key={`empty-${idx}`}>
+                          <Td colSpan={7}>&nbsp;</Td>
+                        </Tr>
+                      ))}
+                  </Tbody>
+                </Table>
+              </TableContainer>
+              <HStack justify="space-between" mt={4}>
+                <Button onClick={() => setPage(page > 1 ? page - 1 : page)} isDisabled={page === 1}>Anterior</Button>
+                <Text>Página {page} de {Math.ceil(filteredUsuarios.length / pageSize) || 1}</Text>
+                <Button onClick={() => setPage(page < Math.ceil(filteredUsuarios.length / pageSize) ? page + 1 : page)} isDisabled={page === Math.ceil(filteredUsuarios.length / pageSize)}>Siguiente</Button>
+              </HStack>
+            </TabPanel>
+          ))}
+        </TabPanels>
+      </Tabs>
+      <NuevoUsuario
+        isOpen={isNuevoUsuarioOpen}
+        onClose={() => setIsNuevoUsuarioOpen(false)} // Solo cierra el modal
+        onUserCreated={() => fetchUsuarios(activeTab as UsuarioType)} // Refresca los usuarios después de crear uno nuevo
+      />
+      {selectedUser && <VerUsuario isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} userData={selectedUser} setUserData={setSelectedUser} userRole={selectedUser.rol?.nombre} />}
+    </Stack>
+  );
+};
+
+export default VerUsuarios;
