@@ -208,7 +208,7 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
                         Teléfono
                       </Th>
                       <Th color="white" textAlign="center">
-                        Fecha de Nacimiento
+                        Fecha de <br/>Nacimiento
                       </Th>
                       <Th color="white" textAlign="center">
                         Rol
@@ -224,7 +224,16 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
                         <Td>{startIndex + index + 1}</Td>
                         <Td>{usuario.nombre}</Td>
                         <Td>{usuario.email}</Td>
-                        <Td>{usuario.telefono}</Td>
+                        <Td>
+                          <a
+                            href={`https://wa.me/${usuario.telefono}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "green", textDecoration: "underline" }}
+                          >
+                            {usuario.telefono}
+                          </a>
+                        </Td>
                         <Td>{moment(usuario.fechaNacimiento).format("DD-MM-YYYY")}</Td>
                         <Td>{usuario.rol.nombre || "Sin rol asignado"}</Td>
                         <Td>

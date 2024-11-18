@@ -324,7 +324,7 @@ const Dashboard = () => {
                       {usuariosCount.enSesion}
                     </Text>
                     <Text fontSize="sm" color="gray.600">
-                      Usuarios en Sesión
+                      Usuarios en <><br/></>Sesión
                     </Text>
                   </Box>
 
@@ -340,7 +340,7 @@ const Dashboard = () => {
                       {usuariosCount.activos}
                     </Text>
                     <Text fontSize="sm" color="gray.600">
-                      Usuarios Activos
+                      Usuarios <><br/></>Activos
                     </Text>
                   </Box>
 
@@ -357,7 +357,7 @@ const Dashboard = () => {
                       {usuariosCount.inactivos}
                     </Text>
                     <Text fontSize="sm" color="gray.600">
-                      Usuarios Inactivos
+                      Usuarios <><br/></> Inactivos
                     </Text>
                   </Box>
                 </Flex>
