@@ -281,11 +281,18 @@ const Dashboard = () => {
 
       {/* Contenido del Dashboard */}
       <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="0vh">
-        {showUsuarios ? (
-          <VerUsuarios onBack={() => setShowUsuarios(false)} />
-        ) : (
+      {showUsuarios ? (
+        <VerUsuarios
+          onBack={() => {
+            setShowUsuarios(false); // Vuelve al dashboard principal
+            fetchUsuariosCount(); // Actualiza los conteos
+            refreshUserData(); // Actualiza los datos del usuario actual
+          }}
+        />
+      ) : (
           <>
             <Heading>Bienvenido al Dashboard</Heading>
+          {(userRole === "Super" || userRole === "Administrador") && (
             <Card
               mt={6}
               p={4}
@@ -294,6 +301,7 @@ const Dashboard = () => {
               bg="white"
               _hover={{ transform: "scale(1.03)", boxShadow: "xl" }}
               transition="all 0.2s ease-in-out"
+width={{ base: "90%", md: "400px" }}
               cursor="pointer"
               onClick={() => setShowUsuarios(true)}
             >
@@ -381,7 +389,7 @@ const Dashboard = () => {
             </Card>
 
 
-
+                      )}
 
           </>
         )}
