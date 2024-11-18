@@ -26,18 +26,24 @@ export async function GET(request: Request) {
 
 // POST: Crear un nuevo rol
 export async function POST(request: Request) {
+  console.log('Recibiendo POST en /api/roles');
   try {
     await connectMongo();
-    const { nombre } = await request.json();
+    const body = await request.json();
+    console.log('Cuerpo de la solicitud:', body);
+
+    const { nombre } = body;
 
     // Verificar si el rol ya existe
     const existingRole = await Role.findOne({ nombre });
     if (existingRole) {
+      console.log('Rol ya existe:', existingRole);
       return NextResponse.json({ message: 'El rol ya existe' }, { status: 400 });
     }
 
     const newRole = new Role({ nombre });
     await newRole.save();
+    console.log('Rol creado:', newRole);
 
     return NextResponse.json({ message: 'Rol creado exitosamente', role: newRole });
   } catch (error) {
@@ -45,3 +51,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Error al crear rol' }, { status: 500 });
   }
 }
+

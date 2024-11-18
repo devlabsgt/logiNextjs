@@ -4,7 +4,7 @@ import Usuario from '@/app/models/Usuario';
 import bcrypt from 'bcrypt';
 
 const inicializar = async () => {
-  const roles = ['Super', 'Administrador'];
+  const roles = ['Super', 'Administrador','Empleado'];
 
   for (const nombre of roles) {
     const existingRole = await Role.findOne({ nombre });
