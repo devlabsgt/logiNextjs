@@ -22,10 +22,18 @@ import {
   EditablePreview,
   EditableInput,
   useToast,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverCloseButton,
+  PopoverHeader,
+  PopoverBody,
 } from "@chakra-ui/react";
 import moment from "moment";
 import NuevoEmpleado from "./NuevoEmpleado";
-import { generarReporteEmpleadosPDF } from "./reportes";
+import { generarReporteEmpleadosPDF } from "./ReporteEmpleados";
+import generarInformeEmpleadoPDF from "./ReporteEmpleado";
 
 interface Usuario {
   _id: string;
@@ -272,6 +280,9 @@ const [isNuevoEmpleadoOpen, setIsNuevoEmpleadoOpen] = useState(false);
                       <Th color="white" textAlign="center">
                         Renglón
                       </Th>
+                      <Th color="white" textAlign="center">
+                        Acciones
+                      </Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -461,6 +472,40 @@ const [isNuevoEmpleadoOpen, setIsNuevoEmpleadoOpen] = useState(false);
                             <EditableInput />
                           </Editable>
                         </Td>
+<Td>
+<Popover>
+  <PopoverTrigger>
+    <Button colorScheme="blue" size="sm">
+      Gestionar
+    </Button>
+  </PopoverTrigger>
+  <PopoverContent width="150px"> {/* Ajusta el ancho según tus necesidades */}
+    <PopoverArrow />
+    <PopoverBody>
+      <Stack direction="column" spacing={2}>
+        <Button
+          colorScheme="green"
+          size="sm"
+          onClick={() => generarInformeEmpleadoPDF(empleado)}
+        >
+          Generar PDF
+        </Button>
+        <Button
+          colorScheme="red"
+          size="sm"
+          onClick={() => {/* lógica para desactivar */}}
+        >
+          Desactivar
+        </Button>
+      </Stack>
+    </PopoverBody>
+  </PopoverContent>
+</Popover>
+
+</Td>
+
+
+                        
                       </Tr>
                     ))}
                     {Array.from({ length: emptyRows }).map((_, index) => (

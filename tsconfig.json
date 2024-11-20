@@ -34,7 +34,7 @@
     "**/*.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts"
-, "src/app/components/empleados/reportes.js"  ],
+, "src/app/components/empleados/ReporteEmpleados.js"  ],
   "exclude": [
     "node_modules"
   ]
