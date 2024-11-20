@@ -26,8 +26,6 @@ import {
   PopoverTrigger,
   PopoverContent,
   PopoverArrow,
-  PopoverCloseButton,
-  PopoverHeader,
   PopoverBody,
 } from "@chakra-ui/react";
 import moment from "moment";
