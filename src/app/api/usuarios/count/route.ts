@@ -3,9 +3,10 @@ import connectMongo from '@/app/lib/mongodb';
 import Usuario from '@/app/models/Usuario';
 
 export async function GET() {
-  await connectMongo();
-
   try {
+    // Asegurar conexión a MongoDB
+    await connectMongo();
+
     // Excluir usuarios con rol "Super"
     const usuariosExcluyendoSuper = await Usuario.find()
       .populate({

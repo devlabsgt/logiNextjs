@@ -27,6 +27,7 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import Swal from "sweetalert2";
 import VerUsuario from "../components/usuarios/VerUsuario";
 import VerUsuarios from "../components/usuarios/VerUsuarios";
+import VerEmpleados from "../components/empleados/VerEmpleados";
 import { jwtDecode } from "jwt-decode";
 
 interface DecodedToken {
@@ -54,6 +55,7 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userData, setUserData] = useState<User | null>(null);
   const [reloadDashboard, setReloadDashboard] = useState(false);
+
   const [showUsuarios, setShowUsuarios] = useState(false); // Controla la vista de usuarios
   const [usuariosCount, setUsuariosCount] = useState({
     total: 0,
@@ -61,6 +63,27 @@ const Dashboard = () => {
     inactivos: 0,
     enSesion: 0,
   });
+
+  const [showEmpleados, setShowEmpleados] = useState(false);
+  const [empleadosCount, setEmpleadosCount] = useState({
+    activos: 0,
+    inactivos: 0,
+  });
+
+    const fetchEmpleadosCount = useCallback(() => {
+      fetch("/api/empleados/count")
+        .then((response) => response.json())
+        .then((data) => {
+          if (data) {
+            setEmpleadosCount({
+              activos: data.activos,
+              inactivos: data.inactivos,
+            });
+          }
+        })
+        .catch((error) => console.error("Error al obtener el conteo de empleados:", error));
+    }, []);
+
 
   const handleSessionExpiration = useCallback(() => {
     const token = localStorage.getItem("token");
@@ -165,17 +188,18 @@ const Dashboard = () => {
       .catch((error) => console.error("Error al obtener el conteo de usuarios:", error));
   }, []);
 
-  useEffect(() => {
-    startSessionExpirationTimer();
-    fetchUsuariosCount();
-  }, [startSessionExpirationTimer, fetchUsuariosCount]);
+  
+useEffect(() => {
+  refreshUserData();             // Actualiza los datos del usuario
+  startSessionExpirationTimer(); // Configura el temporizador de sesión
+  fetchUsuariosCount();          // Obtén el conteo de usuarios
+  fetchEmpleadosCount();         // Obtén el conteo de empleados
 
-  useEffect(() => {
-    if (reloadDashboard) {
-      refreshUserData();
-      setReloadDashboard(false);
-    }
-  }, [reloadDashboard, refreshUserData]);
+  if (reloadDashboard) {
+    setReloadDashboard(false);
+  }
+}, [refreshUserData, startSessionExpirationTimer, fetchUsuariosCount, fetchEmpleadosCount, reloadDashboard]);
+
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -223,10 +247,6 @@ const Dashboard = () => {
       }
     }
   };
-
-  useEffect(() => {
-    refreshUserData();
-  }, [refreshUserData]);
 
   return (
     <Box>
@@ -280,121 +300,156 @@ const Dashboard = () => {
       </Drawer>
 
       {/* Contenido del Dashboard */}
-      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="0vh">
-      {showUsuarios ? (
-        <VerUsuarios
-          onBack={() => {
-            setShowUsuarios(false); // Vuelve al dashboard principal
-            fetchUsuariosCount(); // Actualiza los conteos
-            refreshUserData(); // Actualiza los datos del usuario actual
-          }}
-        />
-      ) : (
-          <>
-            <Heading>Bienvenido al Dashboard</Heading>
-          {(userRole === "Super" || userRole === "Administrador") && (
-            <Card
-              mt={6}
-              p={4}
-              borderRadius="md"
-              boxShadow="lg"
-              bg="white"
-              _hover={{ transform: "scale(1.03)", boxShadow: "xl" }}
-              transition="all 0.2s ease-in-out"
-width={{ base: "90%", md: "400px" }}
-              cursor="pointer"
-              onClick={() => setShowUsuarios(true)}
-            >
-              {/* Encabezado */}
-              <CardBody>
-                <Box textAlign="center" mb={6}>
-                  <Heading size="lg" color="blue.600" fontWeight="bold">
-                    Usuarios del Sistema
-                  </Heading>
-                  <Text fontSize="sm" color="gray.500">
-                    Administración y Gestión
-                  </Text>
-                </Box>
-
-                {/* Conteos */}
-                <Flex gap={4}>
-                  {/* Usuarios Activos */}
-                  
-                  <Box
-                    flex="1"
-                    bg="green.50"
-                    py={4}
-                    borderRadius="md"
-                    textAlign="center"
-                    boxShadow="inner"
-                  >
-                    <Text fontSize="3xl" fontWeight="bold" color="green.700">
-                      {usuariosCount.enSesion}
-                    </Text>
-                    <Text fontSize="sm" color="gray.600">
-                      Usuarios en <><br/></>Sesión
-                    </Text>
-                  </Box>
-
-                  <Box
-                    flex="1"
-                    bg="blue.50"
-                    py={4}
-                    borderRadius="md"
-                    textAlign="center"
-                    boxShadow="inner"
-                  >
-                    <Text fontSize="3xl" fontWeight="bold" color="blue.700">
-                      {usuariosCount.activos}
-                    </Text>
-                    <Text fontSize="sm" color="gray.600">
-                      Usuarios <><br/></>Activos
-                    </Text>
-                  </Box>
-
-                  {/* Usuarios Inactivos */}
-                  <Box
-                    flex="1"
-                    bg="red.50"
-                    py={4}
-                    borderRadius="md"
-                    textAlign="center"
-                    boxShadow="inner"
-                  >
-                    <Text fontSize="3xl" fontWeight="bold" color="red.700">
-                      {usuariosCount.inactivos}
-                    </Text>
-                    <Text fontSize="sm" color="gray.600">
-                      Usuarios <><br/></> Inactivos
-                    </Text>
-                  </Box>
-                </Flex>
-
-              </CardBody>
-
-              {/* Footer */}
-              <Box
-                p={3}
-                mt={4}
-                bg="blue.100"
-                borderTop="1px solid"
-                borderColor="blue.300"
-                borderRadius="md"
-                textAlign="center"
-              >
-                <Text fontSize="md" fontWeight="medium" color="blue.1000">
-                  Haz clic para ver todos los usuarios
+<Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="0vh">
+  {showUsuarios ? (
+    <VerUsuarios
+      onBack={() => {
+        setShowUsuarios(false); // Vuelve al dashboard principal
+        fetchUsuariosCount(); // Actualiza los conteos
+        refreshUserData(); // Actualiza los datos del usuario actual
+      }}
+    />
+  ) : showEmpleados ? (
+      <VerEmpleados onBack={() => setShowEmpleados(false)} />
+    ) : (
+    <>
+      <Heading>Bienvenido al Dashboard</Heading>
+      {(userRole === "Super" || userRole === "Administrador") && (
+        <>
+          {/* Card para Usuarios */}
+          <Card
+            mt={6}
+            p={4}
+            borderRadius="md"
+            boxShadow="lg"
+            bg="white"
+            _hover={{ transform: "scale(1.03)", boxShadow: "xl" }}
+            transition="all 0.2s ease-in-out"
+            width={{ base: "90%", md: "400px" }}
+            cursor="pointer"
+            onClick={() => setShowUsuarios(true)}
+          >
+            <CardBody>
+              <Box textAlign="center" mb={6}>
+                <Heading size="lg" color="blue.600" fontWeight="bold">
+                  Usuarios del Sistema
+                </Heading>
+                <Text fontSize="sm" color="gray.500">
+                  Administración y Gestión
                 </Text>
               </Box>
-            </Card>
+              <Flex gap={4}>
+                <Box
+                  flex="1"
+                  bg="green.50"
+                  py={4}
+                  borderRadius="md"
+                  textAlign="center"
+                  boxShadow="inner"
+                >
+                  <Text fontSize="3xl" fontWeight="bold" color="green.700">
+                    {usuariosCount.enSesion}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    Usuarios en <><br /></>Sesión
+                  </Text>
+                </Box>
+                <Box
+                  flex="1"
+                  bg="blue.50"
+                  py={4}
+                  borderRadius="md"
+                  textAlign="center"
+                  boxShadow="inner"
+                >
+                  <Text fontSize="3xl" fontWeight="bold" color="blue.700">
+                    {usuariosCount.activos}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    Usuarios <><br /></>Activos
+                  </Text>
+                </Box>
+                <Box
+                  flex="1"
+                  bg="red.50"
+                  py={4}
+                  borderRadius="md"
+                  textAlign="center"
+                  boxShadow="inner"
+                >
+                  <Text fontSize="3xl" fontWeight="bold" color="red.700">
+                    {usuariosCount.inactivos}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    Usuarios <><br /></> Inactivos
+                  </Text>
+                </Box>
+              </Flex>
+            </CardBody>
+          </Card>
 
+          {/* Card para Empleados */}
+          <Card
+            mt={6}
+            p={4}
+            borderRadius="md"
+            boxShadow="lg"
+            bg="white"
+            _hover={{ transform: "scale(1.03)", boxShadow: "xl" }}
+            transition="all 0.2s ease-in-out"
+            width={{ base: "90%", md: "400px" }}
+            cursor="pointer"
+            onClick={() => setShowEmpleados(true)}
+          >
+            <CardBody>
+              <Box textAlign="center" mb={6}>
+                <Heading size="lg" color="green.600" fontWeight="bold">
+                  Empleados
+                </Heading>
+                <Text fontSize="sm" color="gray.500">
+                  Gestión de Empleados Municipales
+                </Text>
+              </Box>
+              <Flex gap={4}>
+                <Box
+                  flex="1"
+                  bg="green.50"
+                  py={4}
+                  borderRadius="md"
+                  textAlign="center"
+                  boxShadow="inner"
+                >
+                  <Text fontSize="3xl" fontWeight="bold" color="green.700">
+                    {empleadosCount.activos}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    Activos
+                  </Text>
+                </Box>
+                <Box
+                  flex="1"
+                  bg="red.50"
+                  py={4}
+                  borderRadius="md"
+                  textAlign="center"
+                  boxShadow="inner"
+                >
+                  <Text fontSize="3xl" fontWeight="bold" color="red.700">
+                    {empleadosCount.inactivos}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    Inactivos
+                  </Text>
+                </Box>
+              </Flex>
+            </CardBody>
+          </Card>
 
-                      )}
-
-          </>
-        )}
-      </Box>
-
+        </>
+      )}
+    </>
+  )}
+</Box>
       {/* Modal de perfil */}
       {userData && (
         <VerUsuario
