@@ -95,3 +95,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Error al registrar usuario' }, { status: 500 });
   }
 }
+
+export async function DELETE() {
+  try {
+    // Conexión a la base de datos
+    await connectMongo();
+
+    // Eliminar todos los empleados
+    const result = await Usuario.deleteMany({});
+
+    return NextResponse.json({
+      message: "Todos los usuarios han sido eliminados exitosamente",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error al eliminar empleados:", error);
+    return NextResponse.json(
+      { message: "Error al eliminar empleados" },
+      { status: 500 }
+    );
+  }
+}
