@@ -51,9 +51,9 @@ export const generarReporteEmpleadosPDF = (
   // Cuerpo de la tabla
   const tableRows = empleados.map((empleado, index) => [
     index + 1,
-    empleado.usuario.nombre,
+    empleado.nombre,
     empleado.dpi,
-    empleado.usuario.telefono,
+    empleado.telefono,
     empleado.cargo,
     empleado.banco,
     empleado.cuenta,

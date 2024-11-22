@@ -25,18 +25,15 @@ import {
   Tab,
   TabPanels,
   TabPanel,
+  Flex,
 } from "@chakra-ui/react";
-import moment from "moment-timezone";
 import VerUsuario from "./VerUsuario";
 import NuevoUsuario from "./NuevoUsuario";
 import Swal from "sweetalert2";
 
 interface User {
   _id: string;
-  nombre: string;
   email: string;
-  telefono: string;
-  fechaNacimiento: string;
   rol: { _id: string; nombre: string }; // No opcional
   activo: boolean;
   sesion: boolean;
@@ -90,8 +87,8 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
 
   useEffect(() => {
     const lowerSearch = searchQuery.toLowerCase();
-    const filtered = usuarios.filter(({ nombre, email, telefono, rol }) =>
-      [nombre, email, telefono, rol.nombre].join(" ").toLowerCase().includes(lowerSearch)
+    const filtered = usuarios.filter(({ email, rol }) =>
+      [email, rol.nombre].join(" ").toLowerCase().includes(lowerSearch)
     );
     setFilteredUsuarios(filtered);
     setPage(1);
@@ -174,7 +171,7 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
           />
           {showHint && (
             <Text fontSize="sm" color="gray.500">
-              Buscar por nombre, email, rol o teléfono
+              Buscar por email o rol
             </Text>
           )}
         </Stack>
@@ -182,133 +179,115 @@ const VerUsuarios = ({ onBack }: VerUsuariosProps) => {
           Nuevo Usuario
         </Button>
       </HStack>
-      <Tabs isFitted onChange={(index) => handleTabChange(["activos", "inactivos", "sesion"][index] as "activos" | "inactivos" | "sesion")}>
-        <TabList>
-          <Tab>Activos ({count.activos})</Tab>
-          <Tab>Desactivados ({count.inactivos})</Tab>
-          <Tab>En sesión ({count.enSesion})</Tab>
-        </TabList>
-        <TabPanels>
-          {["activos", "inactivos", "sesion"].map((_, idx) => (
-            <TabPanel key={idx}>
-              <TableContainer borderWidth="1px" borderRadius="md" boxShadow="md" maxW="full">
-                <Table variant="striped" colorScheme="gray" size="sm">
-                  <Thead bg="blue.500">
-                    <Tr>
-                      <Th color="white" textAlign="center">
-                        No.
-                      </Th>
-                      <Th color="white" textAlign="center">
-                        Nombre
-                      </Th>
-                      <Th color="white" textAlign="center">
-                        Email
-                      </Th>
-                      <Th color="white" textAlign="center">
-                        Teléfono
-                      </Th>
-                      <Th color="white" textAlign="center">
-                        Fecha de <br/>Nacimiento
-                      </Th>
-                      <Th color="white" textAlign="center">
-                        Rol
-                      </Th>
-                      <Th color="white" textAlign="center">
-                        Acciones
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {paginatedUsuarios.map((usuario, index) => (
-                      <Tr key={usuario._id}>
-                        <Td>{startIndex + index + 1}</Td>
-                        <Td>{usuario.nombre}</Td>
-                        <Td>{usuario.email}</Td>
-                        <Td>
-                          <a
-                            href={`https://wa.me/${usuario.telefono}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ color: "green", textDecoration: "underline" }}
-                          >
-                            {usuario.telefono}
-                          </a>
-                        </Td>
-                        <Td>{moment(usuario.fechaNacimiento).format("DD-MM-YYYY")}</Td>
-                        <Td>{usuario.rol.nombre || "Sin rol asignado"}</Td>
-                        <Td>
-                          <Popover>
-                            <PopoverTrigger>
-                              <Button bg="#4da8da" _hover={{ bg: "#3798c4" }} color="white" size="sm">
-                                Gestionar
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent>
-                              <PopoverArrow />
-                              <PopoverCloseButton />
-                              <PopoverHeader>Opciones</PopoverHeader>
-                              <PopoverBody>
-                                <Stack spacing={3}>
-                                  <Button
-                                    colorScheme="blue"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedUser(usuario);
-                                      setIsModalOpen(true);
-                                    }}
-                                  >
-                                    Editar
-                                  </Button>
-                                  <Button
-                                    colorScheme={usuario.activo ? "red" : "green"}
-                                    size="sm"
-                                    onClick={() => handleToggleActive(usuario._id, usuario.activo)}
-                                  >
-                                    {usuario.activo ? "Desactivar" : "Activar"}
-                                  </Button>
-                                </Stack>
-                              </PopoverBody>
-                            </PopoverContent>
-                          </Popover>
-                        </Td>
+      
+      <Flex justifyContent="center" width="100%">
+        <Tabs  width={{ base: "100%", xl: "700px" }} isFitted onChange={(index) => handleTabChange(["activos", "inactivos", "sesion"][index] as "activos" | "inactivos" | "sesion")}>
+          <TabList>
+            <Tab>Activos ({count.activos})</Tab>
+            <Tab>Desactivados ({count.inactivos})</Tab>
+            <Tab>En sesión ({count.enSesion})</Tab>
+          </TabList>
+          <TabPanels>
+            {["activos", "inactivos", "sesion"].map((_, idx) => (
+              <TabPanel key={idx}>
+                <TableContainer borderWidth="1px" borderRadius="md" boxShadow="md" maxW="full">
+                  <Table variant="striped" colorScheme="gray" size="sm">
+                    <Thead bg="blue.500">
+                      <Tr>
+                        <Th color="white" textAlign="center">
+                          No.
+                        </Th>
+                        <Th color="white" textAlign="center">
+                          Email
+                        </Th>
+                        <Th color="white" textAlign="center">
+                          Rol
+                        </Th>
+                        <Th color="white" textAlign="center">
+                          Acciones
+                        </Th>
                       </Tr>
-                    ))}
-                    {paginatedUsuarios.length < pageSize &&
-                      Array.from({ length: pageSize - paginatedUsuarios.length }).map((_, idx) => (
-                        <Tr key={`empty-${idx}`}>
-                          <Td colSpan={7}>&nbsp;</Td>
+                    </Thead>
+                    <Tbody>
+                      {paginatedUsuarios.map((usuario, index) => (
+                        <Tr key={usuario._id} >
+                          <Td  textAlign="center">{startIndex + index + 1}</Td>
+                          <Td textAlign="center">{usuario.email}</Td>
+                          <Td textAlign="center">{usuario.rol.nombre || "Sin rol asignado"}</Td>
+                          <Td  textAlign="center">
+                            <Popover>
+                              <PopoverTrigger>
+                                <Button bg="#4da8da" _hover={{ bg: "#3798c4" }} color="white" size="sm">
+                                  Gestionar
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent>
+                                <PopoverArrow />
+                                <PopoverCloseButton />
+                                <PopoverHeader>Opciones</PopoverHeader>
+                                <PopoverBody>
+                                  <Stack spacing={3}>
+                                    <Button
+                                      colorScheme="blue"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedUser(usuario);
+                                        setIsModalOpen(true);
+                                      }}
+                                    >
+                                      Editar
+                                    </Button>
+                                    <Button
+                                      colorScheme={usuario.activo ? "red" : "green"}
+                                      size="sm"
+                                      onClick={() => handleToggleActive(usuario._id, usuario.activo)}
+                                    >
+                                      {usuario.activo ? "Desactivar" : "Activar"}
+                                    </Button>
+                                  </Stack>
+                                </PopoverBody>
+                              </PopoverContent>
+                            </Popover>
+                          </Td>
                         </Tr>
                       ))}
-                  </Tbody>
-                </Table>
-              </TableContainer>
-              <HStack justify="space-between" mt={4}>
-                <Button
-                  onClick={() => setPage(page > 1 ? page - 1 : page)}
-                  isDisabled={page === 1}
-                >
-                  Anterior
-                </Button>
-                <Text>
-                  Página {page} de {Math.ceil(filteredUsuarios.length / pageSize) || 1}
-                </Text>
-                <Button
-                  onClick={() =>
-                    setPage(
-                      page < Math.ceil(filteredUsuarios.length / pageSize)
-                        ? page + 1
-                        : page
-                    )
-                  }
-                  isDisabled={page === Math.ceil(filteredUsuarios.length / pageSize)}
-                >
-                  Siguiente
-                </Button>
-              </HStack>
-            </TabPanel>
-          ))}
-        </TabPanels>
-      </Tabs>
+                      {paginatedUsuarios.length < pageSize &&
+                        Array.from({ length: pageSize - paginatedUsuarios.length }).map((_, idx) => (
+                          <Tr key={`empty-${idx}`}>
+                            <Td colSpan={7}>&nbsp;</Td>
+                          </Tr>
+                        ))}
+                    </Tbody>
+                  </Table>
+                </TableContainer>
+                <HStack justify="space-between" mt={4}>
+                  <Button
+                    onClick={() => setPage(page > 1 ? page - 1 : page)}
+                    isDisabled={page === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <Text>
+                    Página {page} de {Math.ceil(filteredUsuarios.length / pageSize) || 1}
+                  </Text>
+                  <Button
+                    onClick={() =>
+                      setPage(
+                        page < Math.ceil(filteredUsuarios.length / pageSize)
+                          ? page + 1
+                          : page
+                      )
+                    }
+                    isDisabled={page === Math.ceil(filteredUsuarios.length / pageSize)}
+                  >
+                    Siguiente
+                  </Button>
+                </HStack>
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </Tabs>
+      </Flex>
       <NuevoUsuario
         isOpen={isNuevoUsuarioOpen}
         onClose={() => setIsNuevoUsuarioOpen(false)}

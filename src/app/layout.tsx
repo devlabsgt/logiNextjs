@@ -9,7 +9,7 @@ interface Props {
 
 // Definición de los metadatos
 export const metadata: Metadata = {
-  title: 'APP Tu Muni CLM',
+  title: 'Municipalidad de Concepción Las Minas',
   icons: {
     icon: '/logo.ico',
   },

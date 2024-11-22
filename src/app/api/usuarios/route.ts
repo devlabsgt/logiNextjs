@@ -48,13 +48,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: 'Error al obtener usuarios' }, { status: 500 });
   }
 }
+
 // POST: Crear un usuario
 export async function POST(request: Request) {
   try {
     await connectMongo();
-    const { nombre, email, password, telefono, fechaNacimiento, rol } = await request.json();
+    const { email, password, rol } = await request.json();
 
-    console.log("Datos recibidos del frontend:", { nombre, email, password, telefono, fechaNacimiento, rol });
+    console.log("Datos recibidos del frontend:", { email, password, rol });
 
     // Verificar si el usuario ya existe
     const existingUser = await Usuario.findOne({ email });
@@ -77,11 +78,8 @@ export async function POST(request: Request) {
 
     // Crear el usuario con el ID del rol
     const newUser = new Usuario({
-      nombre,
       email,
       password: hashedPassword,
-      telefono,
-      fechaNacimiento,
       rol: roleRecord._id, // Asignar el ID del rol encontrado
       sesion: false,
       activo: true,

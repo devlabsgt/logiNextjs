@@ -37,10 +37,7 @@ interface DecodedToken {
 
 interface User {
   _id: string;
-  nombre: string;
   email: string;
-  telefono: string;
-  fechaNacimiento: string;
   rol: { _id: string; nombre: string }; // No opcional
   activo: boolean;
   sesion: boolean;
@@ -159,7 +156,7 @@ const Dashboard = () => {
       fetch(`/api/usuarios/${userId}`)
         .then((response) => response.json())
         .then((data: User) => {
-          setUserName(data.nombre);
+          setUserName(data.email);
           setUserRole(data.rol.nombre);
           setUserData(data);
         })

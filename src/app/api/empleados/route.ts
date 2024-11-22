@@ -30,6 +30,9 @@ export async function POST(request: Request) {
 
     const {
       usuario,
+      nombre,
+      telefono,
+      fechaNacimiento,
       direccion,
       dpi,
       igss,
@@ -45,7 +48,8 @@ export async function POST(request: Request) {
       renglon,
       activo,
     } = await request.json();
-    // Validar si el usuario existe (si el usuario es proporcionado)
+
+    // Validar si el usuario existe (si se proporciona el ID del usuario)
     if (usuario) {
       const existingUser = await Usuario.findById(usuario);
       if (!existingUser) {
@@ -56,7 +60,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // Verificar si el DPI, IGSS, NIT o Cuenta ya existen
+    // Verificar si el DPI, IGSS, NIT o Cuenta ya están registrados
     const existingEmpleado = await Empleado.findOne({
       $or: [{ dpi }, { igss }, { nit }, { cuenta }],
     });
@@ -69,7 +73,10 @@ export async function POST(request: Request) {
 
     // Crear el nuevo empleado
     const newEmpleado = new Empleado({
-      usuario,
+      usuario: usuario || undefined, // Asignar `undefined` si no se proporciona `usuario`
+      nombre,
+      telefono,
+      fechaNacimiento,
       direccion,
       dpi,
       igss,
@@ -83,8 +90,9 @@ export async function POST(request: Request) {
       fechaFinalizacion,
       contratoNo,
       renglon,
-      activo,
+      activo: activo ?? true, // Asegurar valor por defecto si no se proporciona
     });
+
     await newEmpleado.save();
 
     return NextResponse.json({
@@ -93,6 +101,10 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Error al crear empleado:', error);
-    return NextResponse.json({ message: 'Error al crear empleado' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Error al crear empleado' },
+      { status: 500 }
+    );
   }
 }
+

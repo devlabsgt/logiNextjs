@@ -1,5 +1,3 @@
-//VerUsuario.tsx
-
 import { useEffect, useState } from "react";
 import {
   Modal,
@@ -17,25 +15,19 @@ import {
   Box,
   Text,
   Select,
+  useToast,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import { PasswordInput } from "@/app/components/ui/password-input";
-import moment from "moment";
-import { jwtDecode } from "jwt-decode";
-
-
+import {jwtDecode} from "jwt-decode";
 
 interface User {
   _id: string;
-  nombre: string;
   email: string;
-  telefono: string;
-  fechaNacimiento: string;
   rol: { _id: string; nombre: string }; // No opcional
   activo: boolean;
   sesion: boolean;
 }
-
 
 interface VerUsuarioProps {
   isOpen: boolean;
@@ -49,17 +41,13 @@ interface Role {
   nombre: string;
 }
 
-
-
 interface DecodedToken {
   id: string;
   exp: number;
-    rol: string;
-
+  rol: string;
 }
 
 const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps) => {
-  
   const [isPasswordSectionOpen, setIsPasswordSectionOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -73,21 +61,17 @@ const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps)
   });
   const [roles, setRoles] = useState<Role[]>([]);
   const [errors, setErrors] = useState({
-    nombre: "",
     email: "",
-    telefono: "",
   });
-
-  // Estado para manejar los datos del usuario
   const [localUserData, setLocalUserData] = useState<User>(userData);
   const [userRole, setUserRole] = useState<string>("");
+  const toast = useToast();
 
   useEffect(() => {
-    // Obtener el token del localStorage y decodificarlo
-   const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (token) {
       const decoded: DecodedToken = jwtDecode(token);
-      setUserRole(decoded.rol); // Establecemos el rol desde el token decodificado
+      setUserRole(decoded.rol);
     }
   }, []);
 
@@ -100,9 +84,9 @@ const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps)
 
   useEffect(() => {
     if (isOpen) {
-      setLocalUserData(userData); // Restablecer datos del usuario en localUserData
-      setPassword(""); // Limpiar las contraseñas
-      setConfirmPassword(""); // Limpiar las contraseñas
+      setLocalUserData(userData);
+      setPassword("");
+      setConfirmPassword("");
       setPasswordValid({
         minLength: false,
         uppercase: false,
@@ -111,19 +95,15 @@ const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps)
         specialChar: false,
         match: false,
       });
-      setErrors({
-        nombre: "",
-        email: "",
-        telefono: "",
-      });
+      setErrors({ email: "" });
     }
   }, [isOpen, userData]);
 
   const validateFields = () => {
     const newErrors = {
-      nombre: localUserData.nombre.trim() ? "" : "El nombre es requerido.",
-      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(localUserData.email) ? "" : "El email debe ser válido.",
-      telefono: localUserData.telefono.trim() ? "" : "El teléfono es requerido.",
+      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(localUserData.email)
+        ? ""
+        : "El email debe ser válido.",
     };
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error);
@@ -154,14 +134,10 @@ const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps)
 
     try {
       const updatedData = {
-        nombre: localUserData.nombre,
         email: localUserData.email,
-        telefono: localUserData.telefono,
-        fechaNacimiento: localUserData.fechaNacimiento,
         rol: localUserData.rol._id,
       };
 
-      // Guardar los cambios en la base de datos
       const response = await fetch(`/api/usuarios/${localUserData._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -169,13 +145,52 @@ const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps)
       });
 
       if (response.ok) {
-        // Actualizar los datos del usuario en el contexto o en el estado global si es necesario
         const updatedUser = await response.json();
-        setUserData(updatedUser); // Actualizamos el estado global con los datos más recientes
-        onClose(); // Cerrar el modal
+        setUserData(updatedUser);
+        toast({
+          title: "Cambios guardados",
+          description: "Los cambios del usuario han sido actualizados.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        onClose();
       }
     } catch (error) {
       console.error("Error al actualizar usuario:", error);
+    }
+  };
+
+  const handleSavePassword = async () => {
+    if (!passwordValid.match) return;
+
+    try {
+      const response = await fetch(`/api/usuarios/${localUserData._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Contraseña actualizada",
+          description: "La contraseña se ha cambiado correctamente.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        setIsPasswordSectionOpen(false);
+      } else {
+        toast({
+          title: "Error al actualizar contraseña",
+          description: "Hubo un problema al intentar cambiar la contraseña.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error al actualizar contraseña:", error);
     }
   };
 
@@ -186,49 +201,21 @@ const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps)
         <ModalHeader>Perfil de Usuario</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <FormControl isInvalid={!!errors.nombre} mt={4}>
-            <FormLabel>Nombre</FormLabel>
-            <Input
-              value={localUserData.nombre}
-              onChange={(e) => setLocalUserData({ ...localUserData, nombre: e.target.value })}
-              borderColor={errors.nombre ? "red.500" : undefined}
-            />
-            {errors.nombre && <Text color="red.500" fontSize="sm">{errors.nombre}</Text>}
-          </FormControl>
-
           <FormControl isInvalid={!!errors.email} mt={4}>
             <FormLabel>Email</FormLabel>
             <Input
               type="email"
               value={localUserData.email}
-              onChange={(e) => setLocalUserData({ ...localUserData, email: e.target.value.trim() })}
+              onChange={(e) =>
+                setLocalUserData({ ...localUserData, email: e.target.value.trim() })
+              }
               borderColor={errors.email ? "red.500" : undefined}
             />
-            {errors.email && <Text color="red.500" fontSize="sm">{errors.email}</Text>}
-          </FormControl>
-
-          <FormControl isInvalid={!!errors.telefono} mt={4}>
-            <FormLabel>Teléfono</FormLabel>
-            <Input
-              value={localUserData.telefono}
-              onChange={(e) => setLocalUserData({ ...localUserData, telefono: e.target.value.trim() })}
-              borderColor={errors.telefono ? "red.500" : undefined}
-            />
-            {errors.telefono && <Text color="red.500" fontSize="sm">{errors.telefono}</Text>}
-          </FormControl>
-
-          <FormControl mt={4}>
-            <FormLabel>Fecha de Nacimiento</FormLabel>
-            <Input
-              type="date"
-              value={localUserData.fechaNacimiento ? moment(localUserData.fechaNacimiento).format("YYYY-MM-DD") : ""}
-              onChange={(e) =>
-                setLocalUserData({
-                  ...localUserData,
-                  fechaNacimiento: e.target.value,
-                })
-              }
-            />
+            {errors.email && (
+              <Text color="red.500" fontSize="sm">
+                {errors.email}
+              </Text>
+            )}
           </FormControl>
 
           {(userRole === "Super" || userRole === "Administrador") && (
@@ -310,13 +297,22 @@ const VerUsuario = ({ isOpen, onClose, userData, setUserData }: VerUsuarioProps)
                   Las contraseñas coinciden
                 </Text>
               </Box>
+
+              <Button
+                colorScheme="blue"
+                mt={4}
+                onClick={handleSavePassword}
+                isDisabled={!passwordValid.match}
+              >
+                Guardar Contraseña
+              </Button>
             </Box>
           </Collapse>
         </ModalBody>
 
         <ModalFooter>
           <Button colorScheme="blue" onClick={handleSaveChanges}>
-            Guardar cambios
+            Guardar Cambios
           </Button>
           <Button variant="ghost" onClick={onClose}>
             Cancelar

@@ -38,6 +38,7 @@ export async function GET(
     );
   }
 }
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -46,17 +47,7 @@ export async function PUT(
   try {
     await connectMongo();
     const updates = await request.json();
-    const allowedUpdates = [
-      'nombre',
-      'email',
-      'password',
-      'telefono',
-      'fechaNacimiento',
-      'rol',
-      'sesion',
-      'activo',
-      'verificado',
-    ];
+    const allowedUpdates = ['email', 'password', 'rol', 'sesion', 'activo', 'verificado'];
     const fieldsToUpdate: Record<string, unknown> = {};
 
     for (const key of allowedUpdates) {
@@ -102,6 +93,7 @@ export async function PUT(
     );
   }
 }
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

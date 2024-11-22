@@ -36,7 +36,6 @@ export async function GET(
     );
   }
 }
-
 // PUT: Actualizar un empleado por ID
 export async function PUT(
   request: Request,
@@ -77,7 +76,6 @@ export async function PUT(
     );
   }
 }
-
 // DELETE: Eliminar un empleado por ID
 export async function DELETE(
   request: Request,

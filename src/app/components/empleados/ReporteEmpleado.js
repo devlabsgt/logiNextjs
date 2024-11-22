@@ -31,9 +31,12 @@ const generarInformeEmpleadoPDF = (empleado) => {
 
   // Información del empleado
   const infoEmpleado = [
-    ["Nombre", empleado.usuario.nombre],
-    ["Email", empleado.usuario.email],
-    ["Teléfono", empleado.usuario.telefono],
+    ["Nombre", empleado.nombre],
+    ["Teléfono", empleado.telefono],
+    [
+      "Fecha de Nacimiento",
+      moment(empleado.fechaNacimiento).format("DD/MM/YYYY"),
+    ],
     ["Dirección", empleado.direccion],
     ["DPI", empleado.dpi],
     ["IGSS", empleado.igss],
@@ -41,8 +44,8 @@ const generarInformeEmpleadoPDF = (empleado) => {
     ["Cargo", empleado.cargo],
     ["Banco", empleado.banco],
     ["Cuenta", empleado.cuenta],
-    ["Sueldo", `Q ${empleado.sueldo.toFixed(2)}`],
-    ["Bonificación", `Q ${empleado.bonificacion.toFixed(2)}`],
+    ["Sueldo", `Q ${parseFloat(empleado.sueldo).toFixed(2)}`],
+    ["Bonificación", `Q ${parseFloat(empleado.bonificacion).toFixed(2)}`],
     ["Fecha de Inicio", moment(empleado.fechaInicio).format("DD/MM/YYYY")],
     [
       "Fecha de Finalización",
@@ -83,22 +86,15 @@ const generarInformeEmpleadoPDF = (empleado) => {
   doc.line(lineX, signatureY, lineX + lineWidth, signatureY);
 
   // Agregar nombre y cargo centrados
-  // Establecer el color del texto a negro
   doc.setTextColor(0, 0, 0);
-
-  // Configurar el tamaño y estilo de la fuente
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-
-  // Agregar el nombre de la licenciada
   doc.text(
     "Licda. Katty Anabelli Martínez López",
     pageWidth / 2,
     signatureY + 15,
     { align: "center" }
   );
-
-  // Agregar el cargo
   doc.text(
     "Coordinadora de la Oficina Municipal de ",
     pageWidth / 2,

@@ -3,6 +3,9 @@ import { IUser } from './Usuario';
 
 export interface IEmpleado extends Document {
   usuario?: IUser['_id']; // Hacemos que sea opcional usando "?"
+  nombre: string;
+  telefono: string;
+  fechaNacimiento: Date;
   direccion: string;
   dpi: string;
   igss: string;
@@ -21,6 +24,9 @@ export interface IEmpleado extends Document {
 
 const EmpleadoSchema: Schema = new Schema({
   usuario: { type: Schema.Types.ObjectId, ref: 'Usuario', required: false }, 
+  nombre: { type: String, required: true },
+  telefono: { type: String, required: true },
+  fechaNacimiento: { type: Date, required: true },
   direccion: { type: String, required: true },
   dpi: { type: String, required: true, unique: true },
   igss: { type: String, required: true, unique: true },
