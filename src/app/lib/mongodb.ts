@@ -3,27 +3,33 @@ import mongoose from "mongoose";
 const MONGODB_URL = process.env.MONGODB_URL!;
 
 if (!MONGODB_URL) {
-  throw new Error(
-    "Por favor define la variable de entorno MONGODB_URL en el archivo .env"
-  );
+  throw new Error("⚠️ Debes definir MONGODB_URL en las variables de entorno.");
 }
 
-// Controlar el estado de conexión globalmente
+// Controlar la conexión globalmente
+let connectionPromise: Promise<typeof mongoose> | null = null;
+
 export async function connectMongo() {
   if (mongoose.connection.readyState >= 1) {
     console.log("✅ MongoDB ya está conectado.");
     return;
   }
 
-  try {
-    await mongoose.connect(MONGODB_URL, {
-      bufferCommands: true, // ✅ Deja el buffer activo para evitar el error.
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(MONGODB_URL, {
+      bufferCommands: true,
+      serverSelectionTimeoutMS: 20000, // ⏳ Aumenta el tiempo de espera de conexión (20 segundos)
+      socketTimeoutMS: 45000, // ⏳ Aumenta el tiempo de espera para evitar timeouts
     });
+  }
 
-    console.log("✅ Conectado a MongoDB");
+  try {
+    await connectionPromise;
+    console.log("✅ Conectado a MongoDB correctamente.");
   } catch (error) {
     console.error("❌ Error al conectar a MongoDB:", error);
-    throw new Error("No se pudo conectar a MongoDB");
+    connectionPromise = null; // Restablecer la promesa en caso de error
+    throw new Error("No se pudo conectar a MongoDB.");
   }
 }
 
