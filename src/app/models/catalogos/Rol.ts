@@ -15,5 +15,5 @@ const RolSchema: Schema = new Schema({
 delete mongoose.models.Rol;
 
 // Registra el modelo y muestra un mensaje en consola
-const RolModel = mongoose.models.Rol || mongoose.model<IRol>('Rol', RolSchema);
+const RolModel = mongoose.models.Rol || mongoose.model<IRol>("Rol", RolSchema);
 export default RolModel;

@@ -4,10 +4,17 @@ import Usuario from '../models/Usuario';
 import Cliente from '../models/catalogos/Cliente';
 import bcrypt from 'bcrypt';
 import connectMongo from './mongodb';
+import mongoose from "mongoose";
 
 const inicializar = async () => {
   // Establecer la conexión a la base de datos
   await connectMongo();
+  while (mongoose.connection.readyState !== 1) {
+      console.log("⏳ Esperando conexión a MongoDB...");
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Espera 100ms antes de reintentar
+  }
+  console.log("✅ Conexión lista, inicializando datos...");
+
 
   // Inicializar roles
   const roles = ['Super', 'Administrador', 'Usuario'];
