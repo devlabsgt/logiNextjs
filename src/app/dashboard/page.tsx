@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Heading, Text, VStack } from "@chakra-ui/react";
-//import { useRouter } from "next/navigation";
+//import { useRouter } from "next/navigation"; ---deshabilitado porque no hace nada
 import Navbar from "../components/ui/navbar";
 
 const Dashboard = () => {
