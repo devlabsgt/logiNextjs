@@ -1,28 +1,29 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const MONGODB_URL = process.env.MONGODB_URL!;
 
 if (!MONGODB_URL) {
-  throw new Error('Por favor define la variable de entorno MONGODB_URL en el archivo .env');
+  throw new Error(
+    "Por favor define la variable de entorno MONGODB_URL en el archivo .env"
+  );
 }
 
 // Controlar el estado de conexión globalmente
-let isConnected = false; // Estado de la conexión
-
 export async function connectMongo() {
-  if (isConnected) {
+  if (mongoose.connection.readyState >= 1) {
+    console.log("✅ MongoDB ya está conectado.");
     return;
   }
 
   try {
-    const db = await mongoose.connect(MONGODB_URL, {
-      bufferCommands: false,
+    await mongoose.connect(MONGODB_URL, {
+      bufferCommands: true, // ✅ Deja el buffer activo para evitar el error.
     });
-    isConnected = db.connections[0].readyState === 1; // Verifica si la conexión está lista
-    console.log('Conectado a MongoDB');
+
+    console.log("✅ Conectado a MongoDB");
   } catch (error) {
-    console.error('Error al conectar a MongoDB:', error);
-    throw new Error('No se pudo conectar a MongoDB');
+    console.error("❌ Error al conectar a MongoDB:", error);
+    throw new Error("No se pudo conectar a MongoDB");
   }
 }
 
