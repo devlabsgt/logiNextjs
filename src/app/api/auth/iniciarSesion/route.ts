@@ -5,9 +5,10 @@ import connectMongo from "@/app/lib/mongodb";
 import Usuario from "@/app/models/Usuario";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
-
 export async function POST(request: Request) {
+  console.log("🔄 Intentando conectar a MongoDB...");
   await connectMongo();
+  console.log("✅ Conexión a MongoDB establecida.");
 
   try {
     const { email, password } = await request.json();
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // 🔹 Buscar usuario después de que la conexión está lista
     const usuario = await Usuario.findOne({ email }).populate("rol");
     if (!usuario) {
       return NextResponse.json(
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Actualizar el campo `sesion` con la hora actual
+    // ✅ Sesión actualizada
     usuario.sesion = new Date();
     await usuario.save();
 

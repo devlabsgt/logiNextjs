@@ -6,7 +6,7 @@ if (!MONGODB_URL) {
   throw new Error("⚠️ Debes definir MONGODB_URL en las variables de entorno.");
 }
 
-// Controlar la conexión globalmente
+// Controlar la conexión globalmente con una promesa reutilizable
 let connectionPromise: Promise<typeof mongoose> | null = null;
 
 export async function connectMongo() {
@@ -17,9 +17,9 @@ export async function connectMongo() {
 
   if (!connectionPromise) {
     connectionPromise = mongoose.connect(MONGODB_URL, {
-      bufferCommands: true,
-      serverSelectionTimeoutMS: 20000, // ⏳ Aumenta el tiempo de espera de conexión (20 segundos)
-      socketTimeoutMS: 45000, // ⏳ Aumenta el tiempo de espera para evitar timeouts
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 30000, // ⏳ Aumenta el tiempo de espera de conexión (30s)
+      socketTimeoutMS: 60000, // ⏳ Aumenta el tiempo de espera de socket (60s)
     });
   }
 
