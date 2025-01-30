@@ -49,12 +49,9 @@ const VerUsuario = ({ userId }: VerUsuarioProps) => {
     specialChar: false,
     match: false,
   });
+  
   const [errors, setErrors] = useState({ email: "" });
   const toast = useToast();
-
-  const canEditRole =
-    ["Super", "Administrador"].includes(sessionRole || "") &&
-    userData?.rol !== "Super";
 
   // Cargar datos del usuario en sesión
 useEffect(() => {
@@ -100,6 +97,7 @@ useEffect(() => {
       ? ""
       : "El email debe ser válido.";
     setErrors({ email: emailError });
+    console.log(errors);
     return !emailError;
   };
 

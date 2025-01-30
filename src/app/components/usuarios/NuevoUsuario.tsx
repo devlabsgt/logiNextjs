@@ -102,6 +102,7 @@ const NuevoUsuario = ({ isOpen, onClose }: NuevoUsuarioProps) => {
 
       onClose();
     } catch (error) {
+      console.log(error);
       toast({
         title: "Error",
         description: "No se pudo crear el usuario.",

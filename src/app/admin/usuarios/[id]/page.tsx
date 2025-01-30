@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation"; // Importa useParams
-import { Box, Text, Spinner, Button, Flex, Heading } from "@chakra-ui/react";
+import { Box, Text, Button, Flex, Heading } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../../components/ui/navbar";
 import VerUsuario from "../../../components/usuarios/VerUsuario";
