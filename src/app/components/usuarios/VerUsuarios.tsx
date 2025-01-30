@@ -23,9 +23,24 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import NuevoUsuario from "./NuevoUsuario";
 
+interface Usuario {
+  _id: string;
+  email: string;
+  rol: {
+    nombre: string;
+  } | null;
+  cliente?: {
+    nombre: string;
+  };
+  activo: boolean;
+  verificado: boolean;
+  sesion: string | null;
+}
+
+
 const VerUsuarios = ({ rol }: { rol: string }) => {
-  const [usuarios, setUsuarios] = useState<any[]>([]);
-  const [filteredUsuarios, setFilteredUsuarios] = useState<any[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [filteredUsuarios, setFilteredUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,10 +55,8 @@ const VerUsuarios = ({ rol }: { rol: string }) => {
     try {
       const response = await fetch("/api/protected/usuarios");
       if (!response.ok) throw new Error("Error al obtener usuarios");
-      const data = await response.json();
-      const sortedData = data.sort((a: any, b: any) =>
-        a.email.localeCompare(b.email)
-      );
+      const data: Usuario[] = await response.json();
+      const sortedData = data.sort((a, b) => a.email.localeCompare(b.email));
 
       setUsuarios(sortedData);
       setFilteredUsuarios(sortedData);
@@ -60,6 +73,7 @@ const VerUsuarios = ({ rol }: { rol: string }) => {
       setLoading(false);
     }
   };
+
 
 
   useEffect(() => {
