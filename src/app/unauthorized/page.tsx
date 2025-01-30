@@ -1,7 +1,7 @@
 // app/unauthorized/page.tsx
 'use client';
 
-import { Box, Button, Heading, Text, Image, Icon, Flex } from '@chakra-ui/react';
+import { Box, Button, Heading, Text, Image, Flex } from '@chakra-ui/react';
 import { WarningIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/navigation';
 

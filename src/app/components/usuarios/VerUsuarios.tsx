@@ -48,6 +48,7 @@ const VerUsuarios = ({ rol }: { rol: string }) => {
       setUsuarios(sortedData);
       setFilteredUsuarios(sortedData);
     } catch (error) {
+      console.log(error);
       toast({
         title: "Error",
         description: "No se pudo cargar la lista de usuarios.",
@@ -60,9 +61,6 @@ const VerUsuarios = ({ rol }: { rol: string }) => {
     }
   };
 
-  useEffect(() => {
-    fetchUsuarios();
-  }, []);
 
   useEffect(() => {
     if (searchTerm.trim() === "") {

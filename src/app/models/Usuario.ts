@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { IRol } from "./catalogos/Rol"; // Importa solo la interfaz si es necesario
-import { ICliente } from "./catalogos/Cliente"; // Importa solo la interfaz si es necesario
+//import { ICliente } from "./catalogos/Cliente"; // Importa solo la interfaz si es necesario
 
 export interface IUser extends Document {
   email: string;
