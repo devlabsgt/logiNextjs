@@ -1,11 +1,10 @@
 "use client";
 
-import { Box, Heading, Text, Card, CardBody, VStack } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
+import { Box, Heading, Text, VStack } from "@chakra-ui/react";
+//import { useRouter } from "next/navigation";
 import Navbar from "../components/ui/navbar";
 
 const Dashboard = () => {
-  const router = useRouter();
 
   return (
     <Box>
