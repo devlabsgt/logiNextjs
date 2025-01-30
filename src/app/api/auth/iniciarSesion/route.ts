@@ -3,21 +3,12 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import connectMongo from "@/app/lib/mongodb";
 import Usuario from "@/app/models/Usuario";
-import mongoose from "mongoose";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 export async function POST(request: Request) {
 
   await connectMongo();
-  if (mongoose.connection.readyState === 1) {
-      console.log("✅ MongoDB ya está conectado.");
-      return;
-  } else if (mongoose.connection.readyState === 2) {
-      console.log("⏳ Conexión en progreso, esperando...");
-      await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-
 
   try {
     const { email, password } = await request.json();
