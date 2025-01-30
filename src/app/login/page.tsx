@@ -1,15 +1,20 @@
-// src/app/login/page.tsx
 "use client";
-
 import { useState } from "react";
-import { Box, Button, Input, InputGroup, InputRightElement, VStack, Heading, Image, FormControl, FormErrorMessage, useToast } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Input,
+  InputGroup,
+  InputRightElement,
+  VStack,
+  Heading,
+  Image,
+  FormControl,
+  FormErrorMessage,
+  useToast,
+} from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/navigation";
-import {jwtDecode} from "jwt-decode";
-
-interface DecodedToken {
-  id: string;
-}
 
 const LoginPage = () => {
   const router = useRouter();
@@ -20,86 +25,86 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleLogin = async () => {
-    setError("");
-    setEmailError("");
-    setPasswordError("");
+const handleLogin = async () => {
+  setError("");
+  setEmailError("");
+  setPasswordError("");
 
-    let valid = true;
+  let valid = true;
 
-    if (!email) {
-      setEmailError("El correo electrónico es requerido");
-      valid = false;
-    } else if (!validateEmail(email)) {
-      setEmailError("Formato de correo electrónico inválido");
-      valid = false;
-    }
+  if (!email) {
+    setEmailError("El correo electrónico es requerido");
+    valid = false;
+  } else if (!validateEmail(email)) {
+    setEmailError("Formato de correo electrónico inválido");
+    valid = false;
+  }
 
-    if (!password) {
-      setPasswordError("La contraseña es requerida");
-      valid = false;
-    }
+  if (!password) {
+    setPasswordError("La contraseña es requerida");
+    valid = false;
+  }
 
-    if (!valid) return;
+  if (!valid) return;
 
-    try {
-      const res = await fetch("/api/iniciarSesion", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+  setIsLoading(true);
 
+  try {
+    const res = await fetch("/api/auth/iniciarSesion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (res.ok) {
       const data = await res.json();
 
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        
-        // Decodifica el token para obtener el ID del usuario
-        const decoded: DecodedToken = jwtDecode(data.token);
-        const userId = decoded.id;
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: "Has iniciado sesión correctamente.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
 
-        // Realiza la solicitud PUT para actualizar la sesión
-        await fetch(`/api/usuarios/${userId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sesion: true }),
-        });
-
-        toast({
-          title: "Inicio de sesión exitoso",
-          description: "Has iniciado sesión correctamente.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        router.push("/dashboard");
+      // Redirigir según el rol
+      console.log(data);
+      if (data.rol === "Super" || data.rol === "Administrador") {
+        router.push("/admin");
       } else {
-        setError(data.message || "Error en el inicio de sesión");
-        toast({
-          title: "Error",
-          description: data.message || "Error en el inicio de sesión: "+error,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+        router.push("/dashboard");
       }
-    } catch (error) {
-      setError("Ocurrió un error durante el inicio de sesión");
+    } else {
+      const data = await res.json();
+      setError(data.message || "Error en el inicio de sesión");
       toast({
         title: "Error",
-        description: "Ocurrió un error durante el inicio de sesión: "+error,
+        description: data.message || "Error en el inicio de sesión",
         status: "error",
         duration: 5000,
         isClosable: true,
       });
     }
-  };
+  } catch (error) {
+    setError("Ocurrió un error durante el inicio de sesión");
+    toast({
+      title: "Error",
+      description: "Ocurrió un error durante el inicio de sesión " + error,
+      status: "error",
+      duration: 5000,
+      isClosable: true,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" bg="gray.50" p={4}>
@@ -140,7 +145,7 @@ const LoginPage = () => {
           {passwordError && <FormErrorMessage>{passwordError}</FormErrorMessage>}
         </FormControl>
 
-        <Button colorScheme="blue" width="full" onClick={handleLogin}>
+        <Button colorScheme="blue" width="full" onClick={handleLogin} isLoading={isLoading} isDisabled={isLoading}>
           Iniciar Sesión
         </Button>
       </VStack>

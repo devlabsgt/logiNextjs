@@ -192,6 +192,7 @@ const VerEmpleados = ({ onBack }: VerEmpleadosProps) => {
           No.
         </Th>
         <Th color="white" textAlign="center">Nombre</Th>
+        <Th color="white" textAlign="center">Usuario</Th>
         <Th color="white" textAlign="center">Teléfono</Th>
         <Th color="white" textAlign="center">Fecha Nacimiento</Th>
         <Th color="white" textAlign="center">Dirección</Th>
@@ -223,6 +224,7 @@ const VerEmpleados = ({ onBack }: VerEmpleadosProps) => {
             {startIndex + index + 1}
           </Td>
           <Td>{empleado.nombre}</Td>
+          <Td>{empleado.usuario?.email || "Sin usuario"}</Td>
           <Td>
             <a
               href={`https://wa.me/${empleado.telefono}`}

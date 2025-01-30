@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectMongo from '@/app/lib/mongodb';
 import Empleado from '@/app/models/Empleado';
-
 // GET: Obtener un empleado por ID
 export async function GET(
   request: Request,

@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import connectMongo from '@/app/lib/mongodb';
 import Usuario from '@/app/models/Usuario';
-import Role from '@/app/models/Role'; // Importa el modelo de Role
-import moment from 'moment-timezone'; // Importa moment con la zona horaria
+import Rol from '@/app/models/catalogos/Rol';
 
 export async function GET(request: Request) {
   await connectMongo();
@@ -19,11 +18,11 @@ export async function GET(request: Request) {
   try {
     // Si se proporciona un rol, buscar el ID del rol en la colección de roles
     if (rol) {
-      const roleRecord = await Role.findOne({ nombre: rol });
-      if (!roleRecord) {
+      const rolRecord = await Rol.findOne({ nombre: rol });
+      if (!rolRecord) {
         return NextResponse.json({ message: 'Rol no válido' }, { status: 400 });
       }
-      filters.rol = roleRecord._id; // Asignar el ID del rol encontrado al filtro
+      filters.rol = rolRecord._id; // Asignar el ID del rol encontrado al filtro
     }
 
     if (activo !== null) filters.activo = activo === 'true';
@@ -35,14 +34,8 @@ export async function GET(request: Request) {
     // Excluir usuarios con rol "super"
     usuarios = usuarios.filter((usuario) => usuario.rol.nombre !== "Super");
 
-    // Convertir las fechas de los usuarios a la zona horaria de Guatemala
-    const usuariosConFechaLocal = usuarios.map((usuario) => ({
-      ...usuario.toObject(),
-      createdAt: moment(usuario.createdAt).tz('America/Guatemala').format('DD-MM-YYYY HH:mm:ss'),
-      updatedAt: moment(usuario.updatedAt).tz('America/Guatemala').format('DD-MM-YYYY HH:mm:ss'),
-    }));
-
-    return NextResponse.json(usuariosConFechaLocal);
+    // Enviar los usuarios sin formatear las fechas
+    return NextResponse.json(usuarios);
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
     return NextResponse.json({ message: 'Error al obtener usuarios' }, { status: 500 });
@@ -65,10 +58,10 @@ export async function POST(request: Request) {
     }
 
     // Buscar el rol en la colección de roles y normalizar el nombre
-    const roleRecord = await Role.findOne({ nombre: rol.trim() });
-    console.log("Resultado de la búsqueda de rol:", roleRecord);
+    const rolRecord = await Rol.findOne({ nombre: rol.trim() });
+    console.log("Resultado de la búsqueda de rol:", rolRecord);
 
-    if (!roleRecord) {
+    if (!rolRecord) {
       console.log("Error: El rol proporcionado no es válido o no se encuentra en la base de datos.");
       return NextResponse.json({ message: 'Rol no válido' }, { status: 400 });
     }
@@ -80,9 +73,7 @@ export async function POST(request: Request) {
     const newUser = new Usuario({
       email,
       password: hashedPassword,
-      rol: roleRecord._id, // Asignar el ID del rol encontrado
-      sesion: false,
-      activo: true,
+      rol: rolRecord._id, // Asignar el ID del rol encontrado
       verificado: false,
     });
 
@@ -93,26 +84,5 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error al registrar usuario:', error);
     return NextResponse.json({ message: 'Error al registrar usuario' }, { status: 500 });
-  }
-}
-
-export async function DELETE() {
-  try {
-    // Conexión a la base de datos
-    await connectMongo();
-
-    // Eliminar todos los empleados
-    const result = await Usuario.deleteMany({});
-
-    return NextResponse.json({
-      message: "Todos los usuarios han sido eliminados exitosamente",
-      deletedCount: result.deletedCount,
-    });
-  } catch (error) {
-    console.error("Error al eliminar empleados:", error);
-    return NextResponse.json(
-      { message: "Error al eliminar empleados" },
-      { status: 500 }
-    );
   }
 }

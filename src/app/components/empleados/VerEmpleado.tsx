@@ -144,15 +144,6 @@ const VerEmpleado = ({
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={4}>
-            {/* Mostrar el usuario asignado */}
-            <FormControl>
-              <FormLabel>Usuario Asignado</FormLabel>
-              <Input
-                value={empleado?.usuario?.email || "Sin usuario asignado"}
-                isReadOnly
-                placeholder="Usuario no asignado"
-              />
-            </FormControl>
 
             {/* Campos del empleado */}
             {Object.entries(formData).map(([key, value]) => (

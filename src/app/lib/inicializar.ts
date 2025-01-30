@@ -1,38 +1,49 @@
-// src/app/lib/initializeRoles.ts
-import Role from '@/app/models/Role';
-import Usuario from '@/app/models/Usuario';
+// src/app/lib/inicializar.ts
+import Rol from '../models/catalogos/Rol';
+import Usuario from '../models/Usuario';
+import Cliente from '../models/catalogos/Cliente';
 import bcrypt from 'bcrypt';
+import connectMongo from './mongodb';
 
 const inicializar = async () => {
-  const roles = ['Super', 'Administrador', 'Empleado'];
+  // Establecer la conexión a la base de datos
+  await connectMongo();
 
+  // Inicializar roles
+  const roles = ['Super', 'Administrador', 'Usuario'];
   for (const nombre of roles) {
-    const existingRole = await Role.findOne({ nombre });
+    const existingRole = await Rol.findOne({ nombre });
     if (!existingRole) {
-      await Role.create({ nombre });
+      await Rol.create({ nombre });
     }
   }
 
-  // Obtener el rol "Super" para asignarlo al usuario
-  const superRole = await Role.findOne({ nombre: 'Super' });
+  // Crear cliente "Dev" si no existe
+  const devCliente = await Cliente.findOne({ nombre: 'Dev' });
+  let clienteId;
+  if (!devCliente) {
+    const newCliente = await Cliente.create({ nombre: 'Dev', activo: true });
+    clienteId = newCliente._id;
+  } else {
+    clienteId = devCliente._id;
+  }
 
-  if (superRole) {
-    // Verificar si el super usuario ya existe
-    const existingUser = await Usuario.findOne({ email: 'admin@super.com' });
+  // Obtener el rol "Super" para asignarlo al usuario
+  const superRole = await Rol.findOne({ nombre: 'Super' });
+  const existingUser = await Usuario.findOne({ email: 'super@admin.com' });
     if (!existingUser) {
       // Crear el super usuario con la contraseña hasheada
-      const hashedPassword = await bcrypt.hash('Super1234*', 10); // Cambia 'superpassword' por la contraseña que desees
-
+      const hashedPassword = await bcrypt.hash('Super1234*', 10); // Cambiar 'Super1234*' por la contraseña que desees
       await Usuario.create({
         email: 'admin@super.com',
         password: hashedPassword,
         rol: superRole._id, // Asigna el rol "Super" al usuario
+        cliente: clienteId, // Asigna el cliente "Dev" al usuario
         verificado: true,
       });
-    }
-  } else {
-    console.error('No se encontró el rol "Super", no se pudo crear el usuario Super');
-  }
+    } 
+    console.log('Inicialización correcta');
+
 };
 
 export default inicializar;
