@@ -51,29 +51,32 @@ const VerUsuarios = ({ rol }: { rol: string }) => {
   const toast = useToast();
   const router = useRouter();
 
-  const fetchUsuarios = async () => {
-    try {
-      const response = await fetch("/api/protected/usuarios");
-      if (!response.ok) throw new Error("Error al obtener usuarios");
-      const data: Usuario[] = await response.json();
-      const sortedData = data.sort((a, b) => a.email.localeCompare(b.email));
+const fetchUsuarios = async () => {
+  try {
+    const response = await fetch("/api/protected/usuarios");
 
-      setUsuarios(sortedData);
-      setFilteredUsuarios(sortedData);
-    } catch (error) {
-      console.log(error);
-      toast({
-        title: "Error",
-        description: "No se pudo cargar la lista de usuarios.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!response.ok) throw new Error("Error al obtener usuarios");
+    const data: Usuario[] = await response.json();
 
+    const sortedData = data.sort((a, b) => a.email.localeCompare(b.email));
+    setUsuarios(sortedData);
+    setFilteredUsuarios(sortedData);
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "No se pudo cargar la lista de usuarios.",
+      status: "error",
+      duration: 5000,
+      isClosable: true,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchUsuarios();
+}, [])
 
 
   useEffect(() => {
@@ -134,7 +137,7 @@ const VerUsuarios = ({ rol }: { rol: string }) => {
           <TableContainer w="full" maxW="1000px">
             <Table
               variant="striped"
-              colorScheme={rol === "super" ? "purple" : rol === "admin" ? "green" : "blue"}
+              colorScheme={rol === "Super" ? "purple" : rol === "Admin" ? "green" : "blue"}
               sx={{
                 tableLayout: "fixed", // Fuerza las columnas a respetar el ancho
                 width: "100%",
@@ -202,7 +205,7 @@ const VerUsuarios = ({ rol }: { rol: string }) => {
                     )}
                     <Td>
                       <Button
-                       colorScheme={rol === "super" ? "purple" : rol === "admin" ? "green" : "blue"}
+                       colorScheme={rol === "Super" ? "purple" : rol === "Admin" ? "green" : "blue"}
                         size="sm"
                         rightIcon={<FaUser />}
                         onClick={() =>

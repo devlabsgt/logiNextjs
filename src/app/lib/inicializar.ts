@@ -38,7 +38,7 @@ const inicializar = async () => {
       throw new Error("El rol 'Super' no existe. Asegúrate de que los roles se crean correctamente.");
     }
 
-    const existingUser = await Usuario.findOne({ email: "admin@super.com" });
+    const existingUser = await Usuario.findOne({ email: "super@admin.com" });
     if (!existingUser) {
       const hashedPassword = await bcrypt.hash("Super1234*", 10);
       await Usuario.create({

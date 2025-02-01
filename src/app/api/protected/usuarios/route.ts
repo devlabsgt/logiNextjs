@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
   // Crear el objeto de filtros con un tipo definido
   const filters: { rol?: string; activo?: boolean; sesion?: boolean } = {};
-
+  console.log('se ingreso a la url GET /api/protected/usuarios')
   try {
     // Si se proporciona un rol, buscar el ID del rol en la colección de roles
     if (rol) {

@@ -10,7 +10,7 @@ const UsuariosPage = () => {
       {/* Navbar */}
       <Navbar />
       {/* Contenido principal: Componente VerUsuarios */}
-      <VerUsuarios rol="super" />
+      <VerUsuarios rol="Super" />
     </Box>
   );
 };
