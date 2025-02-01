@@ -62,6 +62,7 @@ const fetchUsuarios = async () => {
     setUsuarios(sortedData);
     setFilteredUsuarios(sortedData);
   } catch (error) {
+    console.error(error);
     toast({
       title: "Error",
       description: "No se pudo cargar la lista de usuarios.",
